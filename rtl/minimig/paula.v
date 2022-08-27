@@ -113,6 +113,7 @@ module paula
   // emulated Hard Disk Drive signals
 	input	hdd_cmd_req,      // command request
 	input	hdd_dat_req,     // data request
+	input	hdd_cdda_req,    // cdda data request
 	output	[2:0] hdd_addr,     // task file register address
 	output	[15:0] hdd_data_out,  // data bus output
 	input	[15:0] hdd_data_in,   // data bus input
@@ -120,6 +121,7 @@ module paula
 	output	hdd_status_wr,      // drive status write enable
 	output	hdd_data_wr,      // data port write enable
 	output	hdd_data_rd,        // data port read enable
+	output	hdd_cdda_wr,      // cdda port write enable
   // fifo / track display
 	output  [7:0]trackdisp,
 	output  [13:0]secdisp,
@@ -287,6 +289,7 @@ paula_floppy pf1
 	.direct_sdi(direct_sdi),
 	.hdd_cmd_req(hdd_cmd_req),
 	.hdd_dat_req(hdd_dat_req),
+	.hdd_cdda_req(hdd_cdda_req),
 	.hdd_addr(hdd_addr),
 	.hdd_data_out(hdd_data_out),
 	.hdd_data_in(hdd_data_in),
@@ -294,6 +297,7 @@ paula_floppy pf1
 	.hdd_status_wr(hdd_status_wr),
 	.hdd_data_wr(hdd_data_wr),
 	.hdd_data_rd(hdd_data_rd),
+	.hdd_cdda_wr(hdd_cdda_wr),
   // fifo / track display
 	.trackdisp(trackdisp),
 	.secdisp(secdisp),

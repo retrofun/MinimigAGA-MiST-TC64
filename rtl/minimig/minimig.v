@@ -246,6 +246,8 @@ module minimig
 	output	right,				//audio bitstream right
 	output	[15:0]ldata,			//left DAC data
 	output	[15:0]rdata, 			//right DAC data
+	output	[15:0]cdda_l,
+	output	[15:0]cdda_r,
 	//user i/o
   output  [3:0] cpu_config,
   output  [4:0] board_configured,
@@ -441,6 +443,8 @@ wire	hdd_wr;					//register write strobe
 wire	hdd_status_wr;			//status register write strobe
 wire	hdd_data_wr;			//data port write strobe
 wire	hdd_data_rd;			//data port read strobe
+wire	hdd_cdda_req;
+wire	hdd_cdda_wr;
 
 wire	[7:0] bank;				//memory bank select
 
@@ -624,8 +628,9 @@ paula PAULA1
 	//ide stuff
 	.direct_scs(~_scs[2]),
 	.direct_sdi(direct_sdi),
-	.hdd_cmd_req(hdd_cmd_req),	
+	.hdd_cmd_req(hdd_cmd_req),
 	.hdd_dat_req(hdd_dat_req),
+	.hdd_cdda_req(hdd_cdda_req),
 	.hdd_addr(hdd_addr),
 	.hdd_data_out(hdd_data_out),
 	.hdd_data_in(hdd_data_in),
@@ -633,6 +638,7 @@ paula PAULA1
 	.hdd_status_wr(hdd_status_wr),
 	.hdd_data_wr(hdd_data_wr),
 	.hdd_data_rd(hdd_data_rd),
+	.hdd_cdda_wr(hdd_cdda_wr),
   // fifo / track display
 	.trackdisp(trackdisp),
 	.secdisp(secdisp),
@@ -1086,7 +1092,32 @@ gayle GAYLE1
 	.hd_fwr(hd_fwr),
 	.hd_frd(hd_frd)
 );
-	
+
+reg         cen_44100;
+reg  [31:0] cen_44100_cnt;
+wire [31:0] cen_44100_cnt_next = cen_44100_cnt + 16'd44100;
+always @(posedge clk) begin
+	cen_44100 <= 0;
+	cen_44100_cnt <= cen_44100_cnt_next;
+	if (cen_44100_cnt_next >= (28*1000000)) begin
+		cen_44100 <= 1;
+		cen_44100_cnt <= cen_44100_cnt_next - (28*1000000);
+	end
+end
+
+cdda_fifo cdda_fifo (
+	.clk_sys       ( clk          ),
+	.clk_en        ( clk7_en      ),
+	.cen_44100     ( cen_44100    ),
+	.reset         ( reset        ),
+
+	.hdd_cdda_req  ( hdd_cdda_req ),
+	.hdd_cdda_wr   ( hdd_cdda_wr  ),
+	.hdd_data_out  ( hdd_data_out ),
+
+	.cdda_l        ( cdda_l       ),
+	.cdda_r        ( cdda_r       )
+);
 
 //instantiate system control
 minimig_syscontrol CONTROL1 

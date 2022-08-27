@@ -498,8 +498,10 @@ minimig minimig (
   //audio
   .left         (                 ),  // audio bitstream left
   .right        (                 ),  // audio bitstream right
-  .ldata        (aud_amiga_left ),  // left DAC data
-  .rdata        (aud_amiga_right),  // right DAC data
+  .ldata        (aud_amiga_left   ),  // left DAC data
+  .rdata        (aud_amiga_right  ),  // right DAC data
+  .cdda_l       (aud_cdda_left    ),
+  .cdda_r       (aud_cdda_right   ),
   //user i/o
   .cpu_config   (cpu_config       ), // CPU config
   .board_configured(board_configured),
@@ -771,6 +773,8 @@ end
 
 wire [15:0] aud_amiga_left;
 wire [15:0] aud_amiga_right;    // sigma-delta DAC output right
+wire [15:0] aud_cdda_left;
+wire [15:0] aud_cdda_right;
 reg [15:0] aud_aux_left;
 reg [15:0] aud_aux_right;    // sigma-delta DAC output right
 
@@ -843,8 +847,10 @@ AudioMix myaudiomix
 	.reset_n(reset_out),
 	.audio_in_l1(aud_amiga_left),
 	.audio_in_l2(aud_aux_left),
+	.audio_in_l3(aud_cdda_left),
 	.audio_in_r1(aud_amiga_right),
 	.audio_in_r2(aud_aux_right),
+	.audio_in_r3(aud_cdda_right),
 	.audio_l(ldata),
 	.audio_r(rdata)
 );

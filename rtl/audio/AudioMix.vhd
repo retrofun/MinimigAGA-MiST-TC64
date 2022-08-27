@@ -13,8 +13,10 @@ port
 	reset_n : in std_logic;
 	audio_in_l1 : in signed(15 downto 0);
 	audio_in_l2 : in signed(15 downto 0);
+	audio_in_l3 : in signed(15 downto 0);
 	audio_in_r1 : in signed(15 downto 0);
 	audio_in_r2 : in signed(15 downto 0);
+	audio_in_r3 : in signed(15 downto 0);
 	audio_l : out signed(15 downto 0);
 	audio_r : out signed(15 downto 0)
 );
@@ -24,6 +26,7 @@ architecture rtl of AudioMix is
 
 signal in1 : signed(16 downto 0);
 signal in2 : signed(16 downto 0);
+signal in3 : signed(16 downto 0);
 signal sum : signed(16 downto 0);
 signal overflow : std_logic;
 signal clipped : signed(16 downto 0);
@@ -33,11 +36,13 @@ begin
 
 in1(16)<=in1(15);
 in2(16)<=in2(15);
+in3(16)<=in3(15);
 
 in1(15 downto 0)<=audio_in_l1 when toggle='0' else audio_in_r1;
 in2(15 downto 0)<=audio_in_l2 when toggle='0' else audio_in_r2;
+in3(15 downto 0)<=audio_in_l3 when toggle='0' else audio_in_r3;
 
-sum<=in1+in2;
+sum<=in1+in2+in3;
 overflow<=sum(15) xor sum(16);
 
 clipped<=sum when overflow='0' else (others=>sum(16));

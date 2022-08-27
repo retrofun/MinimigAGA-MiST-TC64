@@ -107,6 +107,7 @@ module paula_floppy
 	input	direct_sdi,				//data line from SD card
 	input	hdd_cmd_req,			//HDD requests service (command register has been written)
 	input	hdd_dat_req,			//HDD requests data tansfer
+	input	hdd_cdda_req,			//CDDA FIFO requests data transfer
 	output	[2:0] hdd_addr,			//task file register address
 	output	[15:0] hdd_data_out,	//data from HDD to HDC
 	input	[15:0] hdd_data_in,		//data from HDC to HDD
@@ -114,6 +115,7 @@ module paula_floppy
 	output	hdd_status_wr,			//status register write strobe (MCU->HDD)
 	output	hdd_data_wr,			//data write strobe
 	output	hdd_data_rd,			//data read strobe
+	output	hdd_cdda_wr,			//cdda write strobe
   // fifo / track display
 	output  [7:0]trackdisp,
 	output  [13:0]secdisp,
@@ -182,7 +184,9 @@ module paula_floppy
 	reg		cmd_hdd_wr;				//SPI host writes task file registers
 	reg		cmd_hdd_data_wr;		//SPI host writes data to HDD buffer
 	reg		cmd_hdd_data_rd;		//SPI host reads data from HDD buffer
-	
+	reg		cmd_hdd_cdda_rd;		//SPI host reads CDDA FIFO status
+	reg		cmd_hdd_cdda_wr;		//SPI host writes CDDA data to FIFO
+
 //-----------------------------------------------------------------------------------------------//
 // JB: SPI interface
 //-----------------------------------------------------------------------------------------------//
@@ -341,6 +345,7 @@ end
 assign hdd_addr = cmd_hdd_rd ? tx_data_cnt : cmd_hdd_wr ? rx_data_cnt : 1'b0;
 assign hdd_wr = cmd_hdd_wr && rx_flag && rx_cnt==2'd3 ? 1'b1 : 1'b0;
 assign hdd_data_wr = (cmd_hdd_data_wr && rx_flag && rx_cnt==2'd3) || (scs2 && rx_flag) ? 1'b1 : 1'b0;	//there is a possibility that SCS2 is inactive before rx_flag is generated, depends on how fast the CS2 is deaserted after sending the last data bit
+assign hdd_cdda_wr = cmd_hdd_cdda_wr && rx_flag && rx_cnt==2'd3 ? 1'b1 : 1'b0;
 assign hdd_status_wr = rx_data[15:12]==4'b1111 && rx_flag && rx_cnt==2'd0 ? 1'b1 : 1'b0;
 // problem: spi_cmd1 doesn't deactivate after rising _CS line: direct transfers will be treated as command words,
 // workaround: always send more than one command word
@@ -419,9 +424,11 @@ always @(*)
 		else
 			spi_tx_data_3 = 16'd0;
 	else if (cmd_hdd_rd || cmd_hdd_data_rd)
-		spi_tx_data_3 = hdd_data_in;	
+		spi_tx_data_3 = hdd_data_in;
+	else if (cmd_hdd_cdda_rd)
+		spi_tx_data_3 = {15'd0, hdd_cdda_req};
 	else
-		spi_tx_data_3 = 16'd0;			
+		spi_tx_data_3 = 16'd0;
 
 
 //floppy disk write fifo status is latched when transmision of the previous spi word begins 
@@ -724,21 +731,25 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-  if (clk7_en) begin
-	  if (reset) begin
-	  	cmd_fdd <= 0;
-	  	cmd_hdd_rd <= 0;
-	  	cmd_hdd_wr <= 0;
-	  	cmd_hdd_data_wr <= 0;
-	  	cmd_hdd_data_rd <= 0;
-	  end else if (rx_flag && rx_cnt==0) begin
-	  	cmd_fdd <= rx_data[15:13]==3'b000 ? 1'b1 : 1'b0;
-	  	cmd_hdd_rd <= rx_data[15:12]==4'b1000 ? 1'b1 : 1'b0;
-	  	cmd_hdd_wr <= rx_data[15:12]==4'b1001 ? 1'b1 : 1'b0;
-	  	cmd_hdd_data_wr <= rx_data[15:12]==4'b1010 ? 1'b1 : 1'b0;
-	  	cmd_hdd_data_rd <= rx_data[15:12]==4'b1011 ? 1'b1 : 1'b0;
-	  end
-  end
+	if (clk7_en) begin
+		if (reset) begin
+			cmd_fdd <= 0;
+			cmd_hdd_rd <= 0;
+			cmd_hdd_wr <= 0;
+			cmd_hdd_data_wr <= 0;
+			cmd_hdd_data_rd <= 0;
+			cmd_hdd_cdda_rd <= 0;
+			cmd_hdd_cdda_wr <= 0;
+		end else if (rx_flag && rx_cnt==0) begin
+			cmd_fdd <= rx_data[15:13]==3'b000 ? 1'b1 : 1'b0;
+			cmd_hdd_rd <= rx_data[15:12]==4'b1000 ? 1'b1 : 1'b0;
+			cmd_hdd_wr <= rx_data[15:12]==4'b1001 ? 1'b1 : 1'b0;
+			cmd_hdd_data_wr <= rx_data[15:12]==4'b1010 ? 1'b1 : 1'b0;
+			cmd_hdd_data_rd <= rx_data[15:12]==4'b1011 ? 1'b1 : 1'b0;
+			cmd_hdd_cdda_rd <= rx_data[15:12]==4'b1100 ? 1'b1 : 1'b0;
+			cmd_hdd_cdda_wr <= rx_data[15:12]==4'b1101 ? 1'b1 : 1'b0;
+		end
+	end
 end
 
 //disk activity LED
