@@ -1362,7 +1362,7 @@ RAMFUNC unsigned int FileNextSector(fileTYPE *file)
 
 	if(file->sector > (file->size>>9))	// Attempt to seek beyond the end of the file
 	{
-		FatalError(ERROR_FILESYSTEM,"NextSector() beyond end of file",file->sector,0);
+		FatalError(ERROR_FILESYSTEM,"NextSector() beyond end of file",file->sector,file->size>>9);
 		return(0);
 	}
 

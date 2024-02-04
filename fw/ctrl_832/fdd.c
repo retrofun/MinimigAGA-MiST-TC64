@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "drivesounds.h"
 
+#include <string.h>
 #include <stdio.h>
 
 unsigned char DEBUG=0;
@@ -181,6 +182,8 @@ void ReadTrack(adfTYPE *drive)
 	// (Body Blows AGA reads from all connected drives without checking whether they're empty.)
     if (drive->status & DSK_INSERTED)
     {
+    	file.size = drive->filesize; /* FIXME - each floppy image should have its own file structure */
+    
     	if(drive->track >= drive->tracks)
 		{
 			int unit=((int)drive - (int)&df[0])/sizeof(adfTYPE);
@@ -294,7 +297,7 @@ void ReadTrack(adfTYPE *drive)
         sector++;
         if (drive->status & DSK_INSERTED)
         {
-        	if( (sector < SECTOR_COUNT)
+        	if (sector < SECTOR_COUNT)
 		    {
 		        FileNextSector(&file);
 		    }
@@ -636,6 +639,7 @@ void WriteTrack(adfTYPE *drive)
     // setting file pointer to begining of current track
     file.cluster = drive->cache[drive->track];
     file.sector = drive->track * 11;
+   	file.size = drive->filesize; /* FIXME - each floppy image should have its own file structure */
     sector = 0;
 
 	// So much havok for such an innocent looking bug.

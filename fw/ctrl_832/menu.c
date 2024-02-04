@@ -2245,6 +2245,8 @@ void InsertFloppy(adfTYPE *drive)
     }
     drive->tracks = (unsigned char)tracks;
 
+	drive->filesize = file.size;
+
     // fill index cache
     for (i = 0; i < tracks; i++) // for every track get its start position within image file
     {

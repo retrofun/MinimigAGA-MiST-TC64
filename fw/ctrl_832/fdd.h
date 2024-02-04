@@ -21,6 +21,7 @@ typedef struct
     unsigned char track; /*current track*/
     unsigned char track_prev; /*previous track*/
 	unsigned char motor;
+	unsigned long filesize; /* File size - FIXME - should give each floppy image its own file structure */
     char          name[22]; /*floppy name*/
 } adfTYPE;
 
