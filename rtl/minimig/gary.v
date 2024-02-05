@@ -92,12 +92,27 @@ module gary
 	output 	sel_cia_b, 				//select cia B
 	output	sel_rtc,				//select $DCxxxx
 	output	sel_ide,				//select $DAxxxx
+	output	sel_toccata,            //select toccata sound card
 	output	sel_gayle,				//select $DExxxx
-	output	sel_autoconfig		// select $E8xxxx
+	output	sel_autoconfig,		// select $E8xxxx
+	input		autoconfig_done,   // 1 if the autoconfig is done
+	input		[4:0] autoconfig_shutup, // autoconfig shutup register, silence card if one
+	input		[7:0] toccata_base_addr //base address for the Toccata sound card
 );
 
 wire	[2:0] t_sel_slow;
 wire	sel_bank_1; 				// $200000-$3FFFFF
+
+reg     [7:0]   toccata_base_addr_reg;
+reg             autoconfig_done_reg;
+reg     [4:0]   autoconfig_shutup_reg;
+  
+always @(*) begin
+	// (AMR - let's not import a clock into Gary just for this) Pipeline base address registers
+	toccata_base_addr_reg <= toccata_base_addr;
+	autoconfig_done_reg <= autoconfig_done;
+	autoconfig_shutup_reg <= autoconfig_shutup;
+end
 
 //--------------------------------------------------------------------------------------
 
@@ -168,6 +183,8 @@ assign sel_gayle = |hdc_ena && cpu_address_in[23:12]==12'b1101_1110_0001 ? 1'b1 
 assign sel_autoconfig = cpu_address_in[23:16]==12'b1110_1000 ? 1'b1 : 1'b0;		//AUTOCONFIG registers at $E80000 - $E8FFFF
 
 assign sel_rtc = (cpu_address_in[23:16]==8'b1101_1100) ? 1'b1 : 1'b0;   //RTC registers at $DC0000 - $DCFFFF
+
+assign sel_toccata = (cpu_address_in[23:16] == toccata_base_addr_reg) && (autoconfig_shutup_reg[4] == 1'b0) && (autoconfig_done_reg == 1'b1) ? 1'b1 : 1'b0; //Toccata sound card at $E90000 - $E9FFFF
 
 assign sel_reg = cpu_address_in[23:21]==3'b110 ? ~(|t_sel_slow | sel_rtc | sel_ide | sel_gayle) : 1'b0;		//chip registers at $DF0000 - $DFFFFF
 

@@ -1,7 +1,8 @@
 // Minimig autoconfig logic
 
-module minimig_autoconfig
-(
+module minimig_autoconfig #(
+	parameter TOCCATA_SND = 1'b0 // Toccata sound card enabled?
+) (
 	input clk,
 	input clk7_en,
 	input reset,
@@ -17,6 +18,8 @@ module minimig_autoconfig
 	input m68020,
 	input ram_64meg,
 	output reg [4:0] board_configured,
+	output reg [4:0] board_shutup,
+	output reg [7:0] toccata_base_addr, // Base address for the cards
 	output reg autoconfig_done
 );
 
@@ -46,16 +49,19 @@ reg init;
 
 always @(posedge clk)
 begin
+	rom_we<=1'b0;
 
 	if(reset)
 	begin
 		init=1'b1;
-		board_configured<=4'b0000;
+		board_configured<=5'b00000;
 		acdevice<=3'b000;
+		ramsize<=4'b1111;	// Disable RAM briefly at reset
 		roma_wr<=9'h001;
+		board_shutup<=5'b00000;
+		autoconfig_done<=1'b0;
+		toccata_base_addr<=8'h0;
 	end
-
-	rom_we<=1'b0;
 	
 	if(init)
 	begin
@@ -87,6 +93,11 @@ begin
 								board_configured[0] <= 1'b1;
 								acdevice<=(&fastram_config & m68020) ? 3'b001 : 3'b111; // ZIII RAM next
 							end
+						3'b101: begin // Toccata sound card
+								board_configured[4] <= 1'b1;
+								acdevice<=3'b111; // NULL device to terminate the chain
+								toccata_base_addr <= data_in[7:0]; // Store Toccata base address
+							end
 						default :
 							;
 					endcase
@@ -96,8 +107,8 @@ begin
 						3'b001 : begin // ZIII RAM
 								board_configured[1] <= 1'b1;
 								
-								roma_wr[8:6] = 3'b011;	// Third ZIII entry
-								roma_wr[5:0] = 6'h05;	// Write address for modifying size of 2nd ZIII RAM.
+								roma_wr[8:6] <= 3'b011;	// Third ZIII entry
+								roma_wr[5:0] <= 6'h05;	// Write address for modifying size of 2nd ZIII RAM.
 								ramsize <= |slowram_config ? 4'b1000 : 4'b0111; // 2 meg or 4 meg
 								rom_we<=1'b1;
 								// skip straight to 3'b011 on 32 meg platforms
@@ -110,11 +121,25 @@ begin
 							end
 						3'b011 : begin // ZIII RAM 3 - Use leftover space in the memory map.
 								board_configured[3] <= 1'b1;
-								acdevice<=3'b111; // NULL device to terminate the chain
+								if (TOCCATA_SND == 1'b1) begin
+									acdevice<=3'b101; // Toccata sound card
+								end else begin
+									acdevice<=3'b111; // NULL device to terminate the chain
+								end
 							end
 						3'b100 : begin // ETH
 								board_configured[3] <= 1'b1;
 								acdevice<=3'b111; // NULL device to terminate the chain
+							end
+						default:
+							;
+					endcase
+				end
+				9'h04c : begin // Zorre II / III shut up register
+					case(acdevice)
+						3'b101: begin // Shut up Toccata Sound card
+								acdevice<=3'b111; // NULL device to terminate the chain
+								board_shutup[4] <= 1'b1;
 							end
 						default:
 							;

@@ -301,6 +301,7 @@ wire		[15:0] user_data_out;	//user IO data out
 wire		[15:0] gary_data_out;	//data out from memory bus multiplexer
 wire		[15:0] gayle_data_out;	//Gayle data out
 wire		[15:0] cia_data_out;	//cia A+B data bus out
+wire		[15:0] toc_data_out; //Toccata sound card data out
 wire		[15:0] rtc_data_out;  //RTC data out
 wire		[15:0] ar3_data_out;	//Action Replay data out
 
@@ -331,9 +332,11 @@ wire		[8:1] reg_address; 		//main register address bus
 //rest of local signals
 wire		kbdrst;					//keyboard reset
 wire		reset;					//global reset
-wire    aflock;
-wire    cpu_custom;
-wire    autoconfig_done;
+wire		aflock;
+wire		cpu_custom;
+wire		autoconfig_done;
+wire		[7:0] toccata_base_addr; // IO base address for Toccata card
+wire		[4:0] autoconfig_shutup; // IO shutup register, when bit 1 board needs to shut up
 wire		dbr;					//data bus request, Agnus tells CPU that she is using the bus
 wire		dbwe;					//data bus write enable, Agnus tells the RAM it's writing data
 wire		dbs;					//data bus slow down, used for slowing down CPU access to chip, slow and custor register address space
@@ -349,11 +352,13 @@ wire		sel_cia;				//CIA address space
 wire		sel_reg;				//chip register select
 wire		sel_cia_a;				//cia A select
 wire		sel_cia_b;				//cia B select
-wire    sel_rtc;      // RTC select
+wire		sel_rtc;      // RTC select
+wire		sel_toccata; // Toccata sound card select
 wire		sel_autoconfig;
 wire		int2;					//intterrupt 2
 wire		int3;					//intterrupt 3 
 wire		int6;					//intterrupt 6
+wire		int6_toc;			//intterrupt 6
 wire		[7:0] osd_ctrl;			//OSD control
 wire    kb_lmb;
 wire    kb_rmb;
@@ -368,6 +373,11 @@ wire		[3:0] audio_dmas;		//audio dma location pointer restart from Paula to Agnu
 wire		disk_dmal;				//disk dma data transfer request from Paula to Agnus
 wire		disk_dmas;				//disk dma special request from Paula to Agnus
 wire		index;					//disk index interrupt
+
+wire		[15:0] ldata_toc;  // Toccata left audio channel
+wire		[15:0] rdata_toc;  // Toccata right audio channel
+wire		[15:0] ldata_paula;  // Toccata left audio channel
+wire		[15:0] rdata_paula;  // Toccata right audio channel
 
 //local video signals
 wire		blank;					//blanking signal
@@ -600,7 +610,7 @@ paula PAULA1
   .vblint(vbl_int),
 	.int2(int2|gayle_irq|ext_int2),
 	.int3(int3),
-	.int6(int6|ext_int6),
+	.int6(int6|ext_int6|int6_toc),
 	._ipl(_iplx),
 	.audio_dmal(audio_dmal),
 	.audio_dmas(audio_dmas),
@@ -626,8 +636,8 @@ paula PAULA1
 	.qdat(qdat),
 	.left(left),
 	.right(right),
-	.ldata(ldata),
-	.rdata(rdata),
+	.ldata(ldata_paula),
+	.rdata(rdata_paula),
 
 	.floppy_drives(floppy_config[3:2]),
 	//ide stuff
@@ -1062,9 +1072,14 @@ gary GARY1
 	.sel_cia_a(sel_cia_a),
 	.sel_cia_b(sel_cia_b),
 	.sel_rtc(sel_rtc),
+	.sel_toccata(sel_toccata),
 	.sel_ide(sel_ide),
 	.sel_gayle(sel_gayle),
-	.sel_autoconfig(sel_autoconfig)
+	.sel_autoconfig(sel_autoconfig),
+	// Auto config IO BASE
+	.autoconfig_done(autoconfig_done),
+	.autoconfig_shutup(autoconfig_shutup),
+	.toccata_base_addr(toccata_base_addr)
 );
 
 gayle GAYLE1
@@ -1136,7 +1151,11 @@ minimig_syscontrol CONTROL1
 
 wire [15:0] autoconfig_data_out;
 
-minimig_autoconfig autoconfig
+`ifdef MINIMIG_TOCCATA
+minimig_autoconfig#(.TOCCATA_SND(1'b1)) autoconfig
+`else
+minimig_autoconfig#(.TOCCATA_SND(1'b0)) autoconfig
+`endif
 (
 	.clk(clk),
 	.clk7_en(clk7_en),
@@ -1153,11 +1172,53 @@ minimig_autoconfig autoconfig
 	.ram_64meg(ram_64meg),
 	.slowram_config(memory_config[3:2]),
 	.board_configured(board_configured),
-	.autoconfig_done(autoconfig_done)
+	.autoconfig_done(autoconfig_done),
+	.toccata_base_addr(toccata_base_addr),
+	.board_shutup(autoconfig_shutdown),
 );
 
 //-------------------------------------------------------------------------------------
 assign rtc_data_out = (sel_rtc && cpu_rd) ? {12'h000, rtc[{cpu_address_out[5:2], 2'b00} +:4]} : 16'h0000;
+
+`ifdef MINIMIG_TOCCATA
+
+toccata #(
+  .CLK_FREQUENCY(28_359_380)
+) mytoccata (
+  .clk(clk),
+  .rst(reset),
+  .hsync(_hsync),
+  .data_in(cpu_data_out),
+  .data_out(toc_data_out),
+  .addr(cpu_address_out[15:1]),
+  .rd(cpu_rd),
+  .hwr(cpu_hwr),
+  .lwr(cpu_lwr),
+  .sel(sel_toccata),
+  .toc_int(int6_toc),
+  .out_left(ldata_toc),
+  .out_right(rdata_toc)
+);
+
+// Mix the Paula and the Toccata data
+AudioMix tocAudioMix
+(
+  .clk(clk),
+  .reset_n(!reset),
+  .audio_in_l1(ldata_paula),
+  .audio_in_l2(ldata_toc),
+  .audio_in_r1(rdata_paula),
+  .audio_in_r2(rdata_toc),
+  .audio_l(ldata),
+  .audio_r(rdata)
+);
+
+`else
+	assign int6_toc = 1'b0;
+	assign toc_data_out = 16'h0000;
+	assign ldata = ldata_paula;
+	assign rdata = rdata_paula;	
+`endif
 
 //data multiplexer
 assign cpu_data_in[15:0] = gary_data_out[15:0]
@@ -1165,12 +1226,14 @@ assign cpu_data_in[15:0] = gary_data_out[15:0]
 						 | gayle_data_out[15:0]
              | cart_data_out[15:0]
              | rtc_data_out
+				 | toc_data_out[15:0]
 				 | autoconfig_data_out;
 
 assign custom_data_out[15:0] = agnus_data_out[15:0]
 							 | paula_data_out[15:0]
 							 | denise_data_out[15:0]
 							 | user_data_out[15:0];
+
 
 //--------------------------------------------------------------------------------------
 

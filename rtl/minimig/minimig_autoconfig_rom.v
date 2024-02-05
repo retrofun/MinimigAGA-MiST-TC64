@@ -16,6 +16,7 @@ localparam z3base='h40;
 localparam z3base2='h80;
 localparam z3base3='hc0;
 localparam ethbase='h100;
+localparam sndbase='h140;
 
 initial
 begin
@@ -95,6 +96,18 @@ begin
 	ram[ethbase+'h14/2] = 4'b0110;
 	ram[ethbase+'h16/2] = 4'b0011;
 	ram[ethbase+'h26/2] = 4'b1100;	// Serial no: 3
+
+	// Toccata sound card
+
+	ram[sndbase+'h0] = 4'b1100; // Zorro-II card, no link, no ROM
+	ram[sndbase+'h2/2] = 4'b0001; // Next board not related, size 'h64k
+	// Inverted from here on
+	ram[sndbase+'h6/2] = 4'b0011; // Lower byte product number
+	ram[ethbase+'ha/2] = 4'b1101;   // logical size 64k
+	ram[sndbase+'h10/2] = 4'b1011; // Manufacturer ID: 0x4754
+	ram[sndbase+'h12/2] = 4'b1000;
+	ram[sndbase+'h14/2] = 4'b1010;
+	ram[sndbase+'h16/2] = 4'b1011;
 	
 end
 
