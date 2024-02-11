@@ -75,7 +75,7 @@ begin
 		rom_we<=1'b1;
 	
 		// Either 1st board (ZII fast RAM) or null board if RAM is disabled
-		acdevice <= |fastram_config ? 3'b000 : 3'b111;
+		acdevice <= |fastram_config ? 3'b000 : (TOCCATA_SND == 1'b1 ? 3'b101 : 3'b111);
 		init<=1'b0;
 	end
 	else
@@ -91,7 +91,7 @@ begin
 					case(acdevice)
 						3'b000 : begin // ZII RAM
 								board_configured[0] <= 1'b1;
-								acdevice<=(&fastram_config & m68020) ? 3'b001 : 3'b111; // ZIII RAM next
+								acdevice<=(&fastram_config & m68020) ? 3'b001 : (TOCCATA_SND == 1'b1 ? 3'b101 : 3'b111); // ZIII RAM or Toccata next
 							end
 						3'b101: begin // Toccata sound card
 								board_configured[4] <= 1'b1;
