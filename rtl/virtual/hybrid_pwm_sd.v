@@ -114,7 +114,7 @@ reg muxtoggle;
 reg [15:0] mux_in;
 
 always @(posedge clk) begin
-	mux_in <= (init | terminated) ? {initctr_l[13:0],2'b00} : ( muxtoggle ? d_l : d_r );
+	mux_in <= (init | terminated) ? {initctr_l[13:0],2'b00} : ( muxtoggle ? d_r : d_l );
 	if(pwmcounter==5'b11111) // Update thresholds as PWM cycle ends
 	begin	
 		scaledin<=33'h8000000 // (1<<(16-5))<<16     offset to keep centre aligned.
