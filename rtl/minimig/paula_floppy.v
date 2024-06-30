@@ -171,6 +171,7 @@ module paula_floppy
 	
 	reg		[3:0] disk_present;		//disk present status
 	reg		[3:0] disk_writable;	//disk write access status
+	reg		[3:0] disk_dd_hd;		//disk is DD or HD status
 	
 	wire	_selx;					//active whenever any drive is selected
 	wire	[1:0] sel;				//selected drive number
@@ -493,21 +494,83 @@ always @(posedge clk) begin
 end
 
 //-----------------------------------------------------------------------------------------------//
-// 300 RPM floppy disk rotation signal
+// ID 0xaaaaaaaa for HD floppy drives
+wire[3:0] _hd_id;
+
+paula_floppy_hd_id hd_id0
+(
+  .clk(clk),
+  .clk7_en(clk7_en),
+  .reset(reset),
+  .motor_on(motor_on[0]),
+  ._motor(_motor),
+  ._sel(_sel[0]),
+  ._sel_del(_sel_del[0]),
+  ._hd_id(_hd_id[0])
+);
+
+paula_floppy_hd_id hd_id1
+(
+  .clk(clk),
+  .clk7_en(clk7_en),
+  .reset(reset),
+  .motor_on(motor_on[1]),
+  ._motor(_motor),
+  ._sel(_sel[1]),
+  ._sel_del(_sel_del[1]),
+  ._hd_id(_hd_id[1])
+);
+
+paula_floppy_hd_id hd_id2
+(
+  .clk(clk),
+  .clk7_en(clk7_en),
+  .reset(reset),
+  .motor_on(motor_on[2]),
+  ._motor(_motor),
+  ._sel(_sel[2]),
+  ._sel_del(_sel_del[2]),
+  ._hd_id(_hd_id[2])
+);
+
+paula_floppy_hd_id hd_id3
+(
+  .clk(clk),
+  .clk7_en(clk7_en),
+  .reset(reset),
+  .motor_on(motor_on[3]),
+  ._motor(_motor),
+  ._sel(_sel[3]),
+  ._sel_del(_sel_del[3]),
+  ._hd_id(_hd_id[3])
+);
+
+//-----------------------------------------------------------------------------------------------//
+// 300 RPM (DD) and 150 RPM (HD) floppy disk rotation signal
 reg [3:0] rpm_pulse_cnt;
+reg rpm_pulse_div, rpm_pulse_hd;
 always @(posedge clk) begin
   if (clk7_en) begin
     if (sof) begin
-      if (rpm_pulse_cnt==4'd11 || !ntsc && rpm_pulse_cnt==4'd9)
+      rpm_pulse_hd <= 0;
+      if (rpm_pulse_cnt==4'd11 || !ntsc && rpm_pulse_cnt==4'd9) begin
+        if (rpm_pulse_div)
+          rpm_pulse_hd <= 1;
         rpm_pulse_cnt <= 4'd0;
-      else
+        rpm_pulse_div <= ~rpm_pulse_div;
+      end else
         rpm_pulse_cnt <= rpm_pulse_cnt + 4'd1;
     end
   end
 end
     
 // disk index pulses output
-assign index = |(~_sel & motor_on) & ~|rpm_pulse_cnt & sof;
+assign index = |(~_sel & motor_on) &
+               (((~_sel[0] && disk_dd_hd[0]) ||
+               (~_sel[1] && disk_dd_hd[1]) ||
+               (~_sel[2] && disk_dd_hd[2]) ||
+               (~_sel[3] && disk_dd_hd[3])) ? rpm_pulse_hd : ~|rpm_pulse_cnt) &
+               sof;
 	
 //--------------------------------------------------------------------------------------
 //data out multiplexer
@@ -620,12 +683,19 @@ assign _dsktrack0 = dsktrack[sel]==0 ? 1'b0 : 1'b1;
 assign dsktrack79 = dsktrack[sel]==82 ? 1'b1 : 1'b0;
 
 // drive _ready signal control
-// Amiga DD drive activates _ready whenever _sel is active and motor is off
+// Amiga DD/HD drive activates _ready whenever _sel is active and motor is off
+// Amiga HD drive sends device ID 0xaaaaaaaa via _ready after motor on, then off, whenever _sel is active and motor is off
 // or whenever _sel is active, motor is on and there is a disk inserted (not implemented - _ready is active when _sel is active)
-assign _ready   = (_sel[3] | ~(drives[1] & drives[0])) 
-        & (_sel[2] | ~drives[1]) 
-        & (_sel[1] | ~(drives[1] | drives[0])) 
-        & (_sel[0]);
+wire[3:0] _selready;
+assign _selready[0] = disk_dd_hd[0] ? _hd_id[0] : _sel[0];
+assign _selready[1] = disk_dd_hd[1] ? _hd_id[1] : _sel[1];
+assign _selready[2] = disk_dd_hd[2] ? _hd_id[2] : _sel[2];
+assign _selready[3] = disk_dd_hd[3] ? _hd_id[3] : _sel[3];
+
+assign _ready   = (_selready[3] | ~(drives[1] & drives[0]))
+        & (_selready[2] | ~drives[1])
+        & (_selready[1] | ~(drives[1] | drives[0]))
+        & (_selready[0]);
 
 //--------------------------------------------------------------------------------------
 
@@ -762,12 +832,18 @@ parameter DISKDMA_ACTIVE = 2'b10;
 parameter DISKDMA_INT    = 2'b11;
 
 //disk present and write protect status
+//disk DD or HD status
 always @(posedge clk) begin
 	if (clk7_en) begin
-		if(reset)
+		if(reset) begin
 			{disk_writable[3:0],disk_present[3:0]} <= 8'b0000_0000;
-		else if (~direct_flag && rx_data[15:12]==4'b0001 && rx_strobe7 && rx_cnt7==0)
-			{disk_writable[3:0],disk_present[3:0]} <= rx_data[7:0];
+			disk_dd_hd[3:0] <= 4'b0000;
+		end else if (~direct_flag && rx_data[15:12]==4'b0001 && rx_strobe7) begin
+			if (rx_cnt7==0)
+				{disk_writable[3:0],disk_present[3:0]} <= rx_data[7:0];
+			if (rx_cnt7==1)
+				disk_dd_hd[3:0] <= rx_data[3:0];
+		end
 	end
 end
 
