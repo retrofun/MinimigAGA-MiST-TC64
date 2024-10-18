@@ -21,9 +21,9 @@ entity neptuno_top is
 		DRAM_RAS_N		:	 OUT STD_LOGIC;
 		VGA_HS		:	 OUT STD_LOGIC;
 		VGA_VS		:	 OUT STD_LOGIC;
-		VGA_R		:	 OUT UNSIGNED (5 DOWNTO 0);
-		VGA_G		:	 OUT UNSIGNED (5 DOWNTO 0);
-		VGA_B		:	 OUT UNSIGNED (5 DOWNTO 0);
+		VGA_R		:	 OUT STD_LOGIC_VECTOR (5 DOWNTO 0);
+		VGA_G		:	 OUT STD_LOGIC_VECTOR (5 DOWNTO 0);
+		VGA_B		:	 OUT STD_LOGIC_VECTOR (5 DOWNTO 0);
 		-- AUDIO
 		SIGMA_R                     : OUT STD_LOGIC;
 		SIGMA_L                     : OUT STD_LOGIC;
@@ -138,7 +138,8 @@ architecture RTL of neptuno_top is
 		havec2p : boolean := true;
 		ram_64meg : boolean := false;
 		haveiec : boolean := false;
-		havereconfig : boolean := false
+		havereconfig : boolean := false;
+		vga_width : integer := 6
 	);
 	PORT
 	(
@@ -153,14 +154,11 @@ architecture RTL of neptuno_top is
 		CTRL_RX		:	 IN STD_LOGIC;
 		AMIGA_TX		:	 OUT STD_LOGIC;
 		AMIGA_RX		:	 IN STD_LOGIC;
-		VGA_PIXEL   : OUT STD_LOGIC;
-		VGA_SELCS   : OUT STD_LOGIC;
-		VGA_CS		:	 OUT STD_LOGIC;
 		VGA_HS		:	 OUT STD_LOGIC;
 		VGA_VS		:	 OUT STD_LOGIC;
-		VGA_R		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-		VGA_G		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-		VGA_B		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+		VGA_R		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
+		VGA_G		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
+		VGA_B		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
 		SDRAM_DQ		:	 INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);
 		SDRAM_A		:	 OUT STD_LOGIC_VECTOR(12 DOWNTO 0);
 		SDRAM_DQML		:	 OUT STD_LOGIC;
@@ -272,7 +270,8 @@ generic map
 		havec2p => true,
 		ram_64meg => false,
 		haveiec => false,
-		havereconfig => false		
+		havereconfig => false,
+		vga_width => 6
 	)
 PORT map
 	(
@@ -286,14 +285,11 @@ PORT map
 		CTRL_RX => '1',
 		AMIGA_TX => amiga_txd,
 		AMIGA_RX => amiga_rxd,
-		VGA_PIXEL => vga_pixel,
-		VGA_SELCS => vga_selcsync,
-		VGA_CS => vga_csync,
-		VGA_HS => vga_hsync,
-		VGA_VS => vga_vsync,
-		VGA_R	=> vga_red,
-		VGA_G	=> vga_green,
-		VGA_B	=> vga_blue,
+		VGA_HS => VGA_HS,
+		VGA_VS => VGA_VS,
+		VGA_R	=> VGA_R,
+		VGA_G	=> VGA_G,
+		VGA_B	=> VGA_B,
 	
 		SDRAM_DQ	=> DRAM_DQ,
 		SDRAM_A => DRAM_ADDR,
@@ -369,40 +365,6 @@ joy: joydecoder
 		joy2fire2		=> joy2fire2
 	);
 
-
-mydither : entity work.video_vga_dither
-	generic map(
-		outbits => 6
-	)
-	port map(
-		clk=>sysclk,
-		pixel=> vga_pixel,
-		vidEna=>vga_window,
-		iSelcsync=>vga_selcsync,
-		iCsync=>vga_csync,
-		iHsync=>vga_hsync,
-		iVsync=>vga_vsync,
-		iRed =>   unsigned(vga_red),
-		iGreen => unsigned(vga_green),
-		iBlue =>  unsigned(vga_blue),
-		oHsync=>VGA_HS_i,
-		oVsync=>VGA_VS_i,
-		oRed(7 downto 2) => VGA_R_i,
-		oGreen(7 downto 2) => VGA_G_i,
-		oBlue(7 downto 2) => VGA_B_i
-	);
-
-	
-process(sysclk)
-begin
-	if rising_edge(sysclk) then
-		VGA_R<=VGA_R_i;
-		VGA_G<=VGA_G_i;
-		VGA_B<=VGA_B_i;
-		VGA_HS<=VGA_HS_i;
-		VGA_VS<=VGA_VS_i;
-	end if;
-end process;
 
 LED <= VGA_HS_i;
 
