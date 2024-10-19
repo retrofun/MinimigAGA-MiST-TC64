@@ -41,7 +41,7 @@
 # ========================
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY out
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
-set_global_assignment -name LAST_QUARTUS_VERSION "22.1std.2 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name PRE_FLOW_SCRIPT_FILE "quartus_sh:../../tcl/build_id.tcl"
 set_global_assignment -name SMART_RECOMPILE ON
 
@@ -326,7 +326,7 @@ set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
 # SignalTap II Assignments
 # ========================
 set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE output_files/stp1.stp
+set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 
 # Power Estimation Assignments
 # ============================
@@ -458,8 +458,8 @@ set_global_assignment -name VHDL_FILE ../../EightThirtyTwo/RTL/debug_fifo.vhd
 set_global_assignment -name VHDL_FILE ../../EightThirtyTwo/RTL/altera/debug_bridge_jtag.vhd
 set_global_assignment -name VHDL_FILE ../../EightThirtyTwo/RTL/altera/debug_virtualjtag.vhd
 set_global_assignment -name VERILOG_FILE ../../rtl/jtag/profile_cpu.v
-set_global_assignment -name SDC_FILE minimig_mist.sdc
-set_global_assignment -name SDC_FILE minimig_mist_sdram2.sdc
+set_global_assignment -name SDC_FILE ../mist/minimig_mist.sdc
+set_global_assignment -name SDC_FILE ../mist/minimig_mist_sdram2.sdc
 set_global_assignment -name QIP_FILE ../../rtl/mist/vidclkcntrl.qip
 set_global_assignment -name VERILOG_FILE ../../rtl/soc/minimig_mist_top.v
 set_global_assignment -name VERILOG_FILE ../../rtl/mist/user_io.v
@@ -496,4 +496,5 @@ set_global_assignment -name SIGNALTAP_FILE hdmi.stp
 set_global_assignment -name VHDL_FILE ../../rtl/drivesounds/drivesounds.vhd
 set_global_assignment -name SIGNALTAP_FILE output_files/stp1.stp
 set_global_assignment -name SIGNALTAP_FILE stp1.stp
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
