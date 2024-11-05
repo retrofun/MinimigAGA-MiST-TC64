@@ -42,7 +42,7 @@ port(
 	clkena_in     : in      std_logic:='1';
 	IPL           : in      std_logic_vector(2 downto 0):="111";
 	dtack         : in      std_logic;
-	freeze        : in      std_logic;
+	freeze        : in      std_logic:='0';
 	vpa           : in      std_logic:='1';
 	ein           : in      std_logic:='1';
 	addr          : out     std_logic_vector(31 downto 0);
@@ -128,7 +128,7 @@ SIGNAL sel_chipram      : std_logic;
 SIGNAL turbochip_d      : std_logic := '0';
 SIGNAL turbokick_d      : std_logic := '0';
 SIGNAL turboslow_d      : std_logic := '0';
-SIGNAL slower           : std_logic_vector(2 downto 0);
+SIGNAL slower           : std_logic_vector(3 downto 0);
 
 signal datatg68_selram  : std_logic;
 SIGNAL datatg68_c       : std_logic_vector(15 downto 0);
@@ -243,6 +243,7 @@ sel_eth<='0';
 	-- Register incoming data
 	process(clk) begin
 		if rising_edge(clk) then
+			-- Block_turbo and sel_nmi_vector are both ready 4 clocks after clkena, so too late for ram_cs
 			datatg68_selram <= sel_ram and (not cpu_internal) and (not block_turbo) and (not sel_nmi_vector); -- AMR - remove sel_nmi_vector's decoding from the mux path
 			if sel_undecoded_d = '1' then
 				datatg68_c <= X"FFFF";
@@ -305,7 +306,7 @@ end generate;
       OR sel_audio='1'
     ) ELSE '0';
 
-  ramcs <= NOT datatg68_selram or slower(0); -- (NOT cpu_internal AND sel_ram_d AND NOT sel_nmi_vector) OR slower(0) or block_turbo;
+  ramcs <= NOT datatg68_selram or slower(0) or block_turbo or sel_nmi_vector; -- (NOT cpu_internal AND sel_ram_d AND NOT sel_nmi_vector) OR slower(0) or block_turbo;
 
   cpustate <= longword&ramcs&state(1 downto 0);
   ramlds <= lds_in;
@@ -508,7 +509,7 @@ begin
 --	clkena <= '1' WHEN clkena_pre='1' or (slower(0)='0' and
 	clkena <= '1' WHEN slower(0)='0' and
 					   ((clkena_in='1' and ((ena7RDreg='1' AND clkena_e='1') OR (ena7WRreg='1' AND clkena_f='1') or fast_rd='1')) OR
-					   cpu_internal='1' or (ramready='1' and block_turbo='0') OR sel_undecoded_d='1' OR akiko_ack='1')
+					   cpu_internal='1' or ramready='1' OR sel_undecoded_d='1' OR akiko_ack='1')
 --					   (ramready='1' and block_turbo='0')))
 				  ELSE '0';
 
@@ -520,7 +521,7 @@ begin
 	-- Turbo set to none: severe throttling selected but has no effect since all chipram accesses go through the slow path.
 
 	-- When throttling is enabled:
-	--   Data reads go through the slow path as normal
+	--   Data reads to Chip RAM go through the slow path as normal
 	--   Fetches go via the cache (unless CACR says otherwise) but the CPU is slowed by the throttling
 	--   Writes go through the fast path (since real AGA hardware buffers writes.) but again the CPU is slowed by throttling.
 
@@ -528,48 +529,53 @@ begin
 	--   For compatibility, C00000 RAM should probably run at chip RAM speeds
 	--   Fast RAM should perhaps be throttled in Chip (i.e. A1200) mode, but not otherwise?
 
---	PROCESS (clk) BEGIN
---		IF rising_edge(clk) THEN
---			IF (reset='0' OR nResetOut='0') THEN
---				throttle_sel <= "00";
---			ELSIF cpu_internal='1' THEN
---				-- If throttling is enabled, block turbo for CPU data reads, and instruction fetch if cache is disabled.
---				throttle_sel(0) <= freeze or (turbochipram xor turbokick);
---				throttle_sel(1) <= freeze or (turbochipram and not turbokick);
---			END IF;
+	PROCESS (clk) BEGIN
+		IF rising_edge(clk) THEN
+			IF (reset='0' OR nResetOut='0') THEN
+				throttle_sel <= "00";
+			elsif clkena='1' then
+				-- If throttling is enabled, block turbo for CPU data reads, and instruction fetch if cache is disabled.
+				throttle_sel(0) <= freeze or (turbochipram xor turbokick);
+				throttle_sel(1) <= freeze or (turbochipram and not turbokick);
+			END IF;
 --			sel_chip_d  <= sel_chip;
---			block_turbo <= aga and sel_chip_d and throttle_sel(0) and (cpu_read or (cpu_fetch and cpu_disablecache));
+			-- All contributing signals are valid 3 clocks after clkena, so valid after clkena+4
+			block_turbo <= aga and sel_chip and throttle_sel(0) and (cpu_read or (cpu_fetch and cpu_disablecache));
 --			cache_inhibit <= sel_kickram and aga and (throttle_sel(1) or throttle_sel(0));
---
---
---		END IF;
---	END PROCESS;
 
-cache_inhibit <= '0';
+		END IF;
+	END PROCESS;
 
---	process (clk) begin
---		if rising_edge(clk) then
---			if (clkena='1' or freeze='1') and cpu_write='0' and block_turbo='0' then
---				throttle<=throttle_sel(1) & throttle_sel;
---			elsif clkena_in='1' then
---				throttle<='0'&throttle(throttle'high downto 1);
---			end if;
---		end if;
---	end process;
+	cache_inhibit <= '0';
+
+	process (clk) begin
+		if rising_edge(clk) then
+			if (clkena='1' or freeze='1') and cpu_write='0' and block_turbo='0' then
+				if throttle_sel(1)='1' or (sel_chip='1' and throttle_sel(0)='1') then
+					throttle<="111";
+				end if;
+			elsif clkena_in='1' then
+				throttle<='0'&throttle(throttle'high downto 1);
+			end if;
+		end if;
+	end process;
 
 	PROCESS (clk) BEGIN
 		IF rising_edge(clk) THEN
 			IF clkena='1' THEN
-				slower <= "111"; -- rokk
+				slower <= throttle_sel(0)&"111"; -- AMR - in Turbo Chip and Kick modes allow one extra cycle for block_turbo etc to propagate
 			ELSE
-				slower<= '0'&slower(slower'high downto 1);
---				slower<= (aga and throttle(0))&slower(slower'high downto 1); -- enaWRreg&slower(3 downto 1);
+--				slower<= '0'&slower(slower'high downto 1);
+				slower<= (aga and throttle(0))&slower(slower'high downto 1); -- enaWRreg&slower(3 downto 1);
 			END IF;
 		END IF;
 	END PROCESS;
 
+	-- Block_turbo is only valid on the 4th cycle after clkena, but is only high when throttling is enabled, at which point
+	-- slower(0) is guaranteed to be high for more than 4 cycles.
+	-- When throttling chip-only cycles, block_turbo and sel_nmi_vector will prevent ram_cs going low, so their being late here shouldn't matter.
 	chipset_cycle <= '1' when clkena_in='1' and slower(0)='0' and (sel_ram='0' OR sel_nmi_vector='1' or block_turbo='1')
-		 and (sel_gayle_ide='0') AND sel_akiko='0' and sel_undecoded_d='0' else '0';
+		 and sel_gayle_ide='0' AND sel_akiko='0' and sel_undecoded_d='0' else '0';
 
 	PROCESS (clk) BEGIN
 	  IF rising_edge(clk) THEN

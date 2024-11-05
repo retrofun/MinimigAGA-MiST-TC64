@@ -556,8 +556,8 @@ always @ (posedge clk) begin
           // data is already in instruction cache way 0
           cpu_sm_itag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b0, itram_cpu_dat_r[30:0]};
-		  level2_i_we<=4'b1111;
-		  level2_wdat<= idram0_cpu_dat_r;
+          level2_i_we<=4'b1111;
+          level2_wdat<= idram0_cpu_dat_r;
 //          cpu_cacheline_i_lo[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 idram0_cpu_dat_r[ 7: 0];
 //          cpu_cacheline_i_hi[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 idram0_cpu_dat_r[15: 8];
 //          cpu_cacheline_i_lo[{cpu_adr_blk_ptr_prev[2:1], 1'b1}] <= #1 idram0_cpu_dat_r[23:16];
@@ -569,7 +569,7 @@ always @ (posedge clk) begin
           // data is already in instruction cache way 1
           cpu_sm_itag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b1, itram_cpu_dat_r[30:0]};
-		  level2_i_we<=4'b1111;
+          level2_i_we<=4'b1111;
           level2_wdat<= idram1_cpu_dat_r;
 //          cpu_cacheline_i_lo[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 idram1_cpu_dat_r[ 7: 0];
 //          cpu_cacheline_i_hi[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 idram1_cpu_dat_r[15: 8];
@@ -582,7 +582,7 @@ always @ (posedge clk) begin
           // data is already in data cache way 0
           cpu_sm_dtag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b0, dtram_cpu_dat_r[30:0]};
-		  level2_d_we<=4'b1111;
+          level2_d_we<=4'b1111;
           level2_wdat<= ddram0_cpu_dat_r;
 //          cpu_cacheline_d_lo[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 ddram0_cpu_dat_r[ 7: 0];
 //          cpu_cacheline_d_hi[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 ddram0_cpu_dat_r[15: 8];
@@ -595,7 +595,7 @@ always @ (posedge clk) begin
           // data is already in data cache way 1
           cpu_sm_dtag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b1, dtram_cpu_dat_r[30:0]};
-		  level2_d_we<=4'b1111;
+          level2_d_we<=4'b1111;
           level2_wdat<= ddram1_cpu_dat_r;
 //          cpu_cacheline_d_lo[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 ddram1_cpu_dat_r[ 7: 0];
 //          cpu_cacheline_d_hi[{cpu_adr_blk_ptr_prev[2:1], 1'b0}] <= #1 ddram1_cpu_dat_r[15: 8];
