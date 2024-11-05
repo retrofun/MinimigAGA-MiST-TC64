@@ -47,6 +47,8 @@ set_output_delay -clock $clk_114 -1.5 [get_ports {VGA_B[*]}]
 set_output_delay -clock $clk_114 -1.5 [get_ports {VGA_HS}]
 set_output_delay -clock $clk_114 -1.5 [get_ports {VGA_VS}]
 
+set_false_path -to [get_ports {VGA_*[*] VGA_*}]
+
 # input delay on SPI pins
 set_input_delay -clock { spi_clk } .5 [get_ports SPI*]
 set_input_delay -clock { spi_clk } .5 [get_ports CONF_DATA0]
@@ -109,12 +111,10 @@ set_multicycle_path -from {TG68K:tg68k|akiko:myakiko|cornerturn:\c2p:myc2p|buf[*
 set_multicycle_path -from {TG68K:tg68k|akiko:myakiko|cornerturn:\c2p:myc2p|buf[*][*]} -to {TG68K:tg68k|TG68KdotC_Kernel:pf68K_Kernel_inst|*} -hold -end 1
 
 # Likewise RTG and audio address have 8 cycles of downtime between bursts
-set_multicycle_path -from {VideoStream:myvs|fetch_address[*]} -to {sdram_ctrl:sdram|*} -setup -end 2
-set_multicycle_path -from {VideoStream:myvs|fetch_address[*]} -to {sdram_ctrl:sdram|*} -hold -end 1
-set_multicycle_path -from {VideoStream:myvs|outptr[*]} -to {sdram_ctrl:sdram|*} -setup -end 2
-set_multicycle_path -from {VideoStream:myvs|outptr[*]} -to {sdram_ctrl:sdram|*} -hold -end 1
-set_multicycle_path -from {VideoStream:myaudiostream|*} -to {sdram_ctrl:sdram|*} -setup -end 2
-set_multicycle_path -from {VideoStream:myaudiostream|*} -to {sdram_ctrl:sdram|*} -hold -end 1
+set_multicycle_path -from {rtg_video:rtg|VideoStream:myvs|fetch_address[*]} -to {sdram_ctrl:sdram|*} -setup -end 2
+set_multicycle_path -from {rtg_video:rtg|VideoStream:myvs|fetch_address[*]} -to {sdram_ctrl:sdram|*} -hold -end 1
+set_multicycle_path -from {VideoStream:myaudiostream|fetch_address[*]} -to {sdram_ctrl:sdram|*} -setup -end 2
+set_multicycle_path -from {VideoStream:myaudiostream|fetch_address[*]} -to {sdram_ctrl:sdram|*} -hold -end 1
 
 # Drivesound state machine doesn't follow writes immedately with reads so we isn't critical.  (FIXME - this is ugly)
 set_multicycle_path -from {drivesounds:ds_inst|altsyncram:ds_storage_rtl_0|*porta_we_reg} -to * -setup -end 2
