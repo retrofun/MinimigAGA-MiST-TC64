@@ -19,7 +19,6 @@ set clk_sdram "amiga_clk|amiga_clk_i|altpll_component|auto_generated|pll1|clk[0]
 set clk_114   "amiga_clk|amiga_clk_i|altpll_component|auto_generated|pll1|clk[1]"
 set clk_28    "amiga_clk|amiga_clk_i|altpll_component|auto_generated|pll1|clk[2]"
 
-
 # name SDRAM ports
 set sdram_outputs [get_ports {SDRAM_DQ[*] SDRAM_A[*] SDRAM_DQML SDRAM_DQMH SDRAM_nWE SDRAM_nCAS SDRAM_nRAS SDRAM_nCS SDRAM_BA[*] SDRAM_CKE}]
 set sdram_inputs  [get_ports {SDRAM_DQ[*]}]
@@ -54,9 +53,17 @@ set_false_path -to [get_ports {VGA_*[*] VGA_*}]
 set_input_delay -clock { spi_clk } .5 [get_ports SPI*]
 set_input_delay -clock { spi_clk } .5 [get_ports CONF_DATA0]
 
+# More input ports for SiDi128 - should be safely ignored on MiST
+set_input_delay -clock { spi_clk } .5 [get_ports QCSn]
+set_input_delay -clock { spi_clk } .5 [get_ports QDAT[*]]
+
+set_input_delay -clock [get_clocks ${clk_114}] .5 [get_ports HDMI_SDA]
+
 # output delay on SPI pins
 set_output_delay -clock { spi_clk } .5 [get_ports SPI_DO]
 
+# output ports for SiDi128 - should be safely ignored on MiST
+set_output_delay -clock [get_clocks ${clk_114}] -reference_pin [get_ports HDMI_PCLK] 1.5 [get_ports HDMI_*]
 
 # false paths
 set_false_path -from * -to [get_ports {SDRAM_CLK}]
@@ -65,6 +72,13 @@ set_false_path -from * -to [get_ports {UART_TX}]
 set_false_path -from [get_ports {UART_RX}] -to *
 set_false_path -from * -to [get_ports {AUDIO_L}]
 set_false_path -from * -to [get_ports {AUDIO_R}]
+
+# Extra false paths for SiDi128 - should be safely ignored on MiST
+set_false_path -from [get_ports MIDI_IN]
+set_false_path -to [get_ports MIDI_OUT]
+set_false_path -to [get_ports HDMI_PCLK]
+# I2C and SPDIF are both slow enough that we shouldn't need to worry about IO timing.
+set_false_path -to [get_ports {I2S_* SPDIF}]
 
 
 # multicycle paths
