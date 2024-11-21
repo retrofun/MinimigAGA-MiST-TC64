@@ -45,6 +45,7 @@ module ide
 	output  [15:0] data_out,
 	output         data_oe,
 	input          rd,
+	output         fast_rd_ena,
 	input          hwr,
 	input          lwr,
 	input          sel_ide,
@@ -391,6 +392,8 @@ ide_fifo SECBUF1
 	.last_out(fifo_last_out),
 	.last_in(fifo_last_in)
 );
+
+assign fast_rd_ena=~fifo_empty;
 
 // fifo is not ready for reading
 assign nrdy = pio_in & sel_fifo & fifo_empty;

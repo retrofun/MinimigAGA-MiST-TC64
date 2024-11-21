@@ -51,6 +51,7 @@ port(
 	data_write    : out     std_logic_vector(15 downto 0);
 	data_write2   : out     std_logic_vector(15 downto 0);
 	fast_rd       : buffer  std_logic;
+	fast_rd_ena   : in      std_logic;
 	as            : out     std_logic;
 	uds           : out     std_logic;
 	lds           : out     std_logic;
@@ -276,7 +277,7 @@ SINGLERAM_ZIII: if dualsdram=false generate
 	sel_z3ram3      <= '1' WHEN (cpuaddr(31 downto 30)="01") and (cpuaddr(26)='1' or cpuaddr(25 downto 24)="01") else '0'; -- and z3ram3_ena='1' ELSE '0';
 end generate;
 
-	sel_gayle_ide <= '1' when state(1 downto 0) = "10" and cpuaddr(31 downto 14)=X"00DA"&"00" else '0';
+	sel_gayle_ide <= '1' when state(1 downto 0) = "10" and cpuaddr(31 downto 14)=X"00DA"&"00" and cpuaddr(4 downto 2)="000" else '0';
 
 	sel_akiko <= '1' when cpuaddr(31 downto 16)=X"00B8" else '0';
 	sel_32 <= '1' when cpu(1)='1' and cpuaddr(31 downto 24)/=X"00" and cpuaddr(31 downto 24)/=X"ff" else '0'; -- Decode 32-bit space, but exclude interrupt vectors
@@ -494,6 +495,7 @@ buslogic : block
 	SIGNAL sync_state       : sync_states;
 	signal sel_chip_d       : std_logic; 
 	signal fast_rd_d        : std_logic;
+	signal fast_rd_ena_d    : std_logic;
 	signal clkena_pre		: std_logic;
 begin
 
@@ -537,6 +539,7 @@ begin
 				-- If throttling is enabled, block turbo for CPU data reads, and instruction fetch if cache is disabled.
 				throttle_sel(0) <= freeze or (turbochipram xor turbokick);
 				throttle_sel(1) <= freeze or (turbochipram and not turbokick);
+				fast_rd_ena_d <= fast_rd_ena;
 			END IF;
 --			sel_chip_d  <= sel_chip;
 			-- All contributing signals are valid 3 clocks after clkena, so valid after clkena+4
@@ -575,7 +578,7 @@ begin
 	-- slower(0) is guaranteed to be high for more than 4 cycles.
 	-- When throttling chip-only cycles, block_turbo and sel_nmi_vector will prevent ram_cs going low, so their being late here shouldn't matter.
 	chipset_cycle <= '1' when clkena_in='1' and slower(0)='0' and (sel_ram='0' OR sel_nmi_vector='1' or block_turbo='1')
-		 and sel_gayle_ide='0' AND sel_akiko='0' and sel_undecoded_d='0' else '0';
+		 and (sel_gayle_ide='0' or fast_rd_ena='0') AND sel_akiko='0' and sel_undecoded_d='0' else '0';
 
 	PROCESS (clk) BEGIN
 	  IF rising_edge(clk) THEN
@@ -623,7 +626,7 @@ begin
 			END IF;
 
 			-- AMR - Fast chipset path for Gayle
-			if slower(0)='0' and clkena_in='1' and sel_gayle_ide='1' and S_state="00" then
+			if slower(0)='0' and clkena_in='1' and sel_gayle_ide='1' and fast_rd_ena='1' and S_state="00" then
 				addr <= cpuaddr;
 				fast_rd <= '1';
 			end if;

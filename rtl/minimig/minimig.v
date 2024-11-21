@@ -155,6 +155,7 @@ module minimig
 	input	[15:0] cpudata_in,	// m68k data in
 	output	[2:0] _cpu_ipl,		// m68k interrupt request
 	input   fast_rd,            // Fast read for Gayle IDE
+	output  fast_rd_ena,
 	input	_cpu_as,			// m68k address strobe
 	input	_cpu_uds,			// m68k upper data strobe
 	input	_cpu_lds,			// m68k lower data strobe
@@ -1128,6 +1129,7 @@ gayle GAYLE1
 	.data_in(cpu_data_out),
 	.data_out(gayle_data_out),
 	.rd(cpu_rd | fast_rd),
+	.fast_rd_ena(fast_rd_ena),
 	.hwr(cpu_hwr),
 	.lwr(cpu_lwr),
 	.sel_ide(sel_ide),
