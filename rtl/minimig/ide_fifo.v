@@ -66,7 +66,7 @@ always @(posedge clk)
 // the empty flag is set immediately after reading the last word from the fifo
 assign empty_rd = inptr==outptr ? 1'b1 : 1'b0;
 
-// after writting empty fifo the empty flag is delayed by one clock to handle ram write delay
+// after writing empty fifo the empty flag is delayed by one clock to handle ram write delay
 always @(posedge clk)
 	if (clk_en)
 		empty_wr <= empty_rd;

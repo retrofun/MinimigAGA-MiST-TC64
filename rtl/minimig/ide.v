@@ -373,7 +373,7 @@ assign fifo_wr = pio_in ? hdd_data_wr : sel_fifo & hwr & lwr;
 assign packet_in = packet_state == PACKET_PROCESSCMD && pio_in;
 assign packet_out = packet_state == PACKET_WAITCMD || (packet_state == PACKET_PROCESSCMD && pio_out);
 
-wire underflow = sector_count==9'h1ff ? 1'b1 : 1'b0;  // IDEFix97 reads from an empty sector buffer at startup.
+wire underflow = sector_count[8:7]==2'b11 ? 1'b1 : 1'b0;  // IDEFix97 reads from an empty sector buffer at startup.
 
 //sector data buffer (FIFO)
 ide_fifo SECBUF1
