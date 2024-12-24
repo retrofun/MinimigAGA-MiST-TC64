@@ -619,13 +619,13 @@ always @ (posedge clk) begin
           sdr_read_req <= #1 1'b0;
           // read data to cpu
           cpu_cache_ack <= #1 1'b1;
-          level2_a<=cpu_adr[3:2];
+          level2_a<=cpu_adr_l[3:2];
           level2_wdat<= {sdr_dat_r[15:0],sdr_dat_r[15:0]};
           if(level1_i) begin
-             level2_i_we<={cpu_adr[1],cpu_adr[1],~cpu_adr[1],~cpu_adr[1]};
+             level2_i_we<={cpu_adr_l[1],cpu_adr_l[1],~cpu_adr_l[1],~cpu_adr_l[1]};
           end
           if(level1_d) begin
-             level2_d_we<={cpu_adr[1],cpu_adr[1],~cpu_adr[1],~cpu_adr[1]};
+             level2_d_we<={cpu_adr_l[1],cpu_adr_l[1],~cpu_adr_l[1],~cpu_adr_l[1]};
           end
 
           if (cache_inhibit) begin
@@ -635,11 +635,11 @@ always @ (posedge clk) begin
             cpu_sm_state <= #1 CPU_SM_FILLW;
           end else begin      
             if(level1_i) begin
-              cpu_cacheline_i_adr <= #1 cpu_adr[25:4];
+              cpu_cacheline_i_adr <= #1 cpu_adr_l[25:4];
               cpu_cacheline_i_dirty <= #1 1'b0;
             end
             if(level1_d) begin
-              cpu_cacheline_d_adr <= #1 cpu_adr[25:4];
+              cpu_cacheline_d_adr <= #1 cpu_adr_l[25:4];
               cpu_cacheline_d_dirty <= #1 1'b0;
             end
 
@@ -701,7 +701,7 @@ always @ (posedge clk) begin
 	  CPU_SM_FILL3: begin
           cpu_cacheline_ready <= 1'b1;
           cpu_sm_state <= #1 CPU_SM_IDLE;
-          cpu_adr_blk_ptr <= #1 cpu_adr_blk; // if CS already activated during fill
+          cpu_adr_blk_ptr <= #1 cpu_adr_blk;
           cpu_sm_adr <= #1 {cpu_adr_idx, cpu_adr_blk};
 	  end		
       CPU_SM_FILLW :
