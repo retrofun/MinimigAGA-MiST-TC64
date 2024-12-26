@@ -102,6 +102,7 @@ reg            _hsync_in_del=0;         // delayed horizontal synchronisation in
 reg            hss=0;                   // horizontal sync start
 reg            _vsync_in_del=0;         // delayed vertical synchronisation input
 reg            vss=0;                   // vertical sync start
+reg            vse=0;                   // vertical sync end
 
 // horizontal sync start  (falling edge detection)
 always @ (posedge clk) begin
@@ -109,6 +110,7 @@ always @ (posedge clk) begin
   hss           <= #1 ~_hsync_in & _hsync_in_del;
   _vsync_in_del <= #1 _vsync_in;
   vss           <= #1 ~_vsync_in & _vsync_in_del;
+  vse           <= #1 _vsync_in & ~_vsync_in_del;
 end
 
 // Interlace long frame detection
@@ -159,6 +161,13 @@ reg  [ 31-1:0] sd_lbuf [0:1024-1];      // line buffer for scan doubling (there 
 reg  [ 31-1:0] sd_lbuf_o=0;             // line buffer output register
 reg  [ 31-1:0] sd_lbuf_o_d=0;           // compensantion for one clock delay of the second line buffer
 reg  [ 11-1:0] sd_lbuf_rd=0;            // line buffer read pointer
+reg  [ 11-1:0] vsync_event;
+reg            vsync_rise;
+reg            vsync_rise_d;
+reg            vsync_fall;
+reg            vsync_fall_d;
+reg            _vsync_sd;
+reg            _vsync_sd_d;
 
 reg sd_bbuf[0:1024-1]; // Buffer for delayed blank signal
 reg sd_bbuf_o;
@@ -171,12 +180,38 @@ always @ (posedge clk) begin
     sd_lbuf_wr <= #1 sd_lbuf_wr + 11'd1;
 end
 
+always @ (posedge clk) begin
+  if (vse) begin
+    vsync_fall <= 0;
+    vsync_rise <= 1;
+    vsync_event <= sd_lbuf_wr;
+  end;
+  if (vss) begin
+    vsync_fall <= 1;
+    vsync_rise <= 0;
+    vsync_event <= sd_lbuf_wr;
+  end;
+end
+
+wire sd_lbuf_rd_reset = hss || (sd_lbuf_rd == {htotal[8:1],2'b11});
 // scandoubler line buffer read pointer
 always @ (posedge clk) begin
-  if (hss || !dblscan || (sd_lbuf_rd == {1'b0,htotal[8:1],2'b11})) // reset at horizontal sync start and end of scandoubled line
+  if (!dblscan || sd_lbuf_rd_reset) // reset at horizontal sync start and end of scandoubled line
     sd_lbuf_rd <= #1 11'd0;
   else
     sd_lbuf_rd <= #1 sd_lbuf_rd + 11'd1;
+end
+
+always @ (posedge clk) begin
+  if (sd_lbuf_rd_reset) begin
+    vsync_rise_d <= vsync_rise;
+    vsync_fall_d <= vsync_fall;
+  end
+  if (vsync_rise_d & vsync_event[10:1] == sd_lbuf_rd[9:0])
+    _vsync_sd <= 1;
+  if (vsync_fall_d & vsync_event[10:1] == sd_lbuf_rd[9:0])
+    _vsync_sd <= 0;
+  _vsync_sd_d <= _vsync_sd;
 end
 
 // scandoubler line buffer write/read
@@ -383,7 +418,7 @@ wire           bm_osd_pixel;
 assign selcsync     = dblscan ? 1'b0 : varbeamen ? 1'b0 : 1'b1;
 assign bm_blank     = dblscan ? ( long_frame ? sd_bbuf_o : sd_lbuf_o_d[30] ) : blank_in;
 assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : _hsync_in;
-assign bm_vsync     = dblscan ? _vsync_in       : _vsync_in;
+assign bm_vsync     = dblscan ? _vsync_sd_d     : _vsync_in;
 //assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : varbeamen ? _hsync_in : ns_csync;
 //assign bm_vsync     = dblscan ? _vsync_in       : varbeamen ? _vsync_in : 1'b1;
 assign bm_r         = dblscan ? sl_r            : varbeamen ? red_in    : ns_r;
