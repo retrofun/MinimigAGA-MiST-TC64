@@ -97,7 +97,8 @@ parameter	HBSTOP_VAL      = 103-5+4-12;// back porch = 4.7us (103) shorter blank
 parameter	HCENTER_VAL     = 256+4+4;	// position of vsync pulse during the long field of interlaced screen
 parameter	VSSTRT_VAL      = 2; //3	// vertical sync start
 parameter	VSSTOP_VAL      = 5;	// PAL vsync width: 2.5 lines (NTSC: 3 lines - not implemented)
-parameter	VBSTRT_VAL      = 0;	// vertical blanking start
+parameter VBSTRT_PAL_VAL    = 310; // vertical blanking start (PAL)
+parameter VBSTRT_NTSC_VAL   = 260; // vertical blanking start (NTSC)
 parameter HTOTAL_VAL      = 9'd227 - 9'd1; // line length of 227 CCKs in PAL mode (NTSC line length of 227.5 CCKs is not supported)
 parameter VTOTAL_PAL_VAL  = 11'd312 - 11'd1; // total number of lines (PAL: 312 lines, NTSC: 262)
 parameter VTOTAL_NTSC_VAL = 11'd262 - 11'd1; // total number of lines (PAL: 312 lines, NTSC: 262)
@@ -235,7 +236,7 @@ always @ (posedge clk) begin
       vtotal_reg  <= #1 displaypal ? VTOTAL_PAL_VAL : VTOTAL_NTSC_VAL;
       vsstrt_reg  <= #1 VSSTRT_VAL;
       vsstop_reg  <= #1 VSSTOP_VAL;
-      vbstrt_reg  <= #1 VBSTRT_VAL;
+      vbstrt_reg  <= #1 displaypal ? VBSTRT_PAL_VAL : VBSTRT_NTSC_VAL;
       vbstop_reg  <= #1 displaypal ? VBSTOP_PAL_VAL : VBSTOP_NTSC_VAL;
     end else begin
 		if(!displaydual || !lpendis) begin  // Normal registers when RTG is off, or lpendis is low
@@ -298,7 +299,7 @@ assign hbstop  =             varbeamen ? (displaydual ? hbstop_sh : hbstop_reg) 
 assign vtotal  =             varbeamen ? (displaydual ? vtotal_sh : vtotal_reg)  : displaypal ? VTOTAL_PAL_VAL : VTOTAL_NTSC_VAL;
 assign vsstrt  = varvsyen && varbeamen ? (displaydual ? vsstrt_sh : vsstrt_reg)  : VSSTRT_VAL;
 assign vsstop  = varvsyen && varbeamen ? (displaydual ? vsstop_sh : vsstop_reg)  : VSSTOP_VAL;
-assign vbstrt  = varvben  && varbeamen ? (displaydual ? vbstrt_sh : vbstrt_reg)  : VBSTRT_VAL;
+assign vbstrt  = varvben  && varbeamen ? (displaydual ? vbstrt_sh : vbstrt_reg)  : displaypal ? VBSTRT_PAL_VAL : VBSTRT_NTSC_VAL;
 assign vbstop  = varvben  && varbeamen ? (displaydual ? vbstop_sh : vbstop_reg)  : displaypal ? VBSTOP_PAL_VAL : VBSTOP_NTSC_VAL;
 
 assign htotal_out    = htotal;
