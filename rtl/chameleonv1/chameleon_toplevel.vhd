@@ -438,6 +438,7 @@ generic map
 		havespirtc => 1,
 		haveiec => 1,
 		havereconfig => 1,
+		haveaudio => 0,
 		vga_width => 5
 	)
 PORT map

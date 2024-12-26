@@ -58,7 +58,7 @@ set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name TPD_REQUIREMENT "2 ns"
 set_global_assignment -name TSU_REQUIREMENT "2 ns"
 set_global_assignment -name TCO_REQUIREMENT "2 ns"
-set_global_assignment -name ALLOW_POWER_UP_DONT_CARE OFF
+set_global_assignment -name ALLOW_POWER_UP_DONT_CARE ON
 set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
 set_global_assignment -name AUTO_RAM_TO_LCELL_CONVERSION OFF
 set_global_assignment -name AUTO_RAM_RECOGNITION ON
@@ -347,7 +347,7 @@ set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
 set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING OFF
 set_global_assignment -name SYNCHRONIZER_IDENTIFICATION AUTO
 set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL ON
-set_global_assignment -name SEED 1
+set_global_assignment -name SEED 2
 set_global_assignment -name OPTIMIZE_POWER_DURING_FITTING "NORMAL COMPILATION"
 set_location_assignment PLL_1 -to amiga_clk|amiga_clk_i|altpll_component|auto_generated|pll1
 set_global_assignment -name PRE_FLOW_SCRIPT_FILE "quartus_sh:../../tcl/build_id.tcl"
@@ -357,6 +357,8 @@ set_global_assignment -name VERILOG_SHOW_LMF_MAPPING_MESSAGES OFF
 set_global_assignment -name VERILOG_MACRO "MINIMIG_TOCCATA=1"
 set_global_assignment -name VERILOG_MACRO "MINIMIG_DRIVESOUNDS=1"
 set_global_assignment -name VERILOG_MACRO "MINIMIG_CONTROL_BOARD=1"
+set_global_assignment -name VERILOG_MACRO "MINIMIG_CDDA=1"
+
 set_global_assignment -name SYNTHESIS_SEED 2
 set_global_assignment -name VERILOG_FILE ../../rtl/rtg/rtg_video.v
 set_global_assignment -name SYSTEMVERILOG_FILE "../../rtl/fpga-toccata/toccata_volume.sv"

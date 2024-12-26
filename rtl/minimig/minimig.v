@@ -1320,8 +1320,13 @@ AudioMix tocAudioMix
   .audio_in_l2(ldata_toc),
   .audio_in_r2(rdata_toc),
   .audio_vol2(toccata_vol),
+`ifdef MINIMIG_CDDA
   .audio_in_l3(cdda_l),
   .audio_in_r3(cdda_r),
+`else
+  .audio_in_l3(16'h0),
+  .audio_in_r3(16'h0),
+`endif
   .audio_vol3(cdda_vol),
   .audio_in_l4(aux_left_1),
   .audio_in_r4(aux_right_1),

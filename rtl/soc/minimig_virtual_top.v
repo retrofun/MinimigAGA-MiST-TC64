@@ -82,8 +82,8 @@ module minimig_virtual_top	#(
   output wire           SDRAM_CKE,  // SDRAM Clock Enable
   
   // MINIMIG specific
-  output wire[15:0]     AUDIO_L,    // sigma-delta DAC output left
-  output wire[15:0]     AUDIO_R,    // sigma-delta DAC output right
+  output wire[23:0]     AUDIO_L,    // sigma-delta DAC output left
+  output wire[23:0]     AUDIO_R,    // sigma-delta DAC output right
 
   // Keyboard / Mouse
   input                 PS2_DAT_I,      // PS2 Keyboard Data
@@ -227,10 +227,6 @@ wire [  16-1:0] joyd;
 //wire           kms_level;
 //wire [  2-1:0] kbd_mouse_type;
 //wire [  3-1:0] mouse_buttons;
-
-// Audio
-wire [15:0] aud_amiga_left;
-wire [15:0] aud_amiga_right;    // sigma-delta DAC output right
 
 // UART
 wire minimig_rxd;
@@ -398,9 +394,6 @@ always @(posedge CLK_114) begin
 	else
 		aud_right<={aud_sample[7:0],aud_sample[15:8]};
 end	
-
-//assign AUDIO_L={aud_left[7:0],aud_left[15:9]};
-//assign AUDIO_R={aud_right[7:0],aud_right[15:9]};
 
 // We can use the same type of FIFO as we use for video.
 VideoStream myaudiostream
@@ -755,8 +748,10 @@ minimig minimig
 	//audio
 	.left         (                 ),  // audio bitstream left
 	.right        (                 ),  // audio bitstream right
-	.ldata        (aud_amiga_left   ),  // left DAC data
-	.rdata        (aud_amiga_right  ),  // right DAC data
+	.ldata        (AUDIO_L          ),  // left DAC data
+	.rdata        (AUDIO_R          ),  // right DAC data
+    .aux_left_2   (aud_left         ),  // Auxiliary audio channels
+    .aux_right_2  (aud_right        ),  // Auxiliary audio channels
 	//user i/o
 	.cpu_config   (cpu_config       ), // CPU config
    .board_configured(board_configured),
@@ -861,18 +856,6 @@ cfide #(
 		.clk_28(CLK_28),
 		.tick_in(aud_tick)
 	);
-
-AudioMix myaudiomix
-(
-	.clk(CLK_28),
-	.reset_n(reset_out),
-	.audio_in_l1(aud_amiga_left),
-	.audio_in_l2(aud_left),
-	.audio_in_r1(aud_amiga_right),
-	.audio_in_r2(aud_right),
-	.audio_l(AUDIO_L),
-	.audio_r(AUDIO_R)
-);
 
 wire [  8-1:0] dithered_red;
 wire [  8-1:0] dithered_green;

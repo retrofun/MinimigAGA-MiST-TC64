@@ -439,6 +439,7 @@ set_global_assignment -name VERILOG_MACRO "MINIMIG_I2S_AUDIO_HDMI=1"
 set_global_assignment -name VERILOG_MACRO "MINIMIG_SPDIF_AUDIO=1"
 set_global_assignment -name VERILOG_MACRO "MINIMIG_USE_MIDI_PINS=1"
 set_global_assignment -name VERILOG_MACRO "MINIMIG_TOCCATA=1"
+set_global_assignment -name VERILOG_MACRO "MINIMIG_CDDA=1"
 
 set_global_assignment -name FORCE_SYNCH_CLEAR OFF
 set_global_assignment -name PRE_MAPPING_RESYNTHESIS ON

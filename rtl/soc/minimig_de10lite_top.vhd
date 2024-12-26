@@ -117,8 +117,8 @@ architecture RTL of DE10liteToplevel is
 	alias sigma_l : std_logic is GPIO(18);
 	alias sigma_r : std_logic is GPIO(20);
 
-	signal audio_l : std_logic_vector(15 downto 0);
-	signal audio_r : std_logic_vector(15 downto 0);
+	signal audio_l : std_logic_vector(23 downto 0);
+	signal audio_r : std_logic_vector(23 downto 0);
 	
 -- IO
 
@@ -179,8 +179,8 @@ architecture RTL of DE10liteToplevel is
 		SDRAM_BA		:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 		SDRAM_CLK		:	 OUT STD_LOGIC;
 		SDRAM_CKE		:	 OUT STD_LOGIC;
-		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
+		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(23 downto 0);
+		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(23 downto 0);
 		PS2_DAT_I		:	 INOUT STD_LOGIC;
 		PS2_CLK_I		:	 INOUT STD_LOGIC;
 		PS2_MDAT_I	:	 INOUT STD_LOGIC;
@@ -347,11 +347,12 @@ audiosd : COMPONENT hybrid_pwm_sd
 	PORT map
 	(
 		clk => sysclk,
-		d_l(15) => not audio_l(15),
-		d_l(14 downto 0) => audio_l(14 downto 0),
+		terminate => '0',
+		d_l(15) => not audio_l(23),
+		d_l(14 downto 0) => audio_l(22 downto 8),
 		q_l => sigma_l,
-		d_r(15) => not audio_r(15),
-		d_r(14 downto 0) => audio_r(14 downto 0),
+		d_r(15) => not audio_r(23),
+		d_r(14 downto 0) => audio_r(22 downto 8),
 		q_r => sigma_r
 	);
 

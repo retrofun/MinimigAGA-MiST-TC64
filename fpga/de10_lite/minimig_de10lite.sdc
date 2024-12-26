@@ -65,6 +65,7 @@ set_output_delay -clock $clk_114 .5 [get_ports {altera_reserved_tdo}]
 
 # false paths
 
+set_false_path -from {minimig_virtual_top:virtual_top|cfide:mycfide|sck} -to {ARDUINO_IO[13]}
 
 # multicycle paths
 

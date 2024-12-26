@@ -175,8 +175,8 @@ architecture rtl of chameleon2_toplevel is
 	signal external_rxd : std_logic;
 
 -- Sound
-	signal audio_l : std_logic_vector(15 downto 0);
-	signal audio_r : std_logic_vector(15 downto 0);
+	signal audio_l : std_logic_vector(23 downto 0);
+	signal audio_r : std_logic_vector(23 downto 0);
 
 -- IO
 	signal button_reset_n : std_logic;
@@ -579,11 +579,11 @@ sdaudio: component hybrid_pwm_sd
 	port map
 	(
 		clk => clk_114,
-		d_l(15) => not audio_l(15),
-		d_l(14 downto 0) => std_logic_vector(audio_l(14 downto 0)),
+		d_l(15) => not audio_l(23),
+		d_l(14 downto 0) => std_logic_vector(audio_l(22 downto 8)),
 		q_l => sigma_l,
-		d_r(15) => not audio_r(15),
-		d_r(14 downto 0) => std_logic_vector(audio_r(14 downto 0)),
+		d_r(15) => not audio_r(23),
+		d_r(14 downto 0) => std_logic_vector(audio_r(22 downto 8)),
 		q_r => sigma_r
 	);
 
