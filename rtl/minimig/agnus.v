@@ -510,6 +510,20 @@ assign strhor_paula = hpos==(6*2+1) ? 1'b1 : 1'b0; //hack
 
 //--------------------------------------------------------------------------------------
 
+// Debug / register capture module
+
+`ifdef MINIMIG_CHIPSET_LOG
+
+chipset_log log (
+  .clk (clk),
+  .clk7_en(clk7_en),
+  .reset(reset),
+  .reg_address_in(reg_address),
+  .data_in(data_in),
+  .blit_busy(blit_busy)
+);
+
+`endif
 
 endmodule
 
