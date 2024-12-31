@@ -155,6 +155,7 @@ reg  [26-1:0] slot1_addr;
 reg  [26-1:0] slot2_addr;
 reg  [16-1:0] sdata_reg;
 reg  [16-1:0] sdata_out;
+reg  [16-1:0] sdata_next;
 reg           sdata_oe;
 wire          ccache_fill;
 wire          ccachehit;
@@ -513,14 +514,14 @@ always @ (posedge sysclk) begin
 //	sd_cmd                      <= #1 CMD_INHIBIT;
 	sd_cmd_next                 <= #1 CMD_INHIBIT;
 //	sdaddr                      <= #1 13'b0;
+	sdaddr<=sdaddr_next;
+	sdata_out <= sdata_next;
+	sd_cmd <= sd_cmd_next;
 	ba                          <= #1 2'b00;
 	dqm                         <= #1 2'b00;
 	cache_fill_1                <= #1 1'b0;
 	cache_fill_2                <= #1 1'b0;
 	snoop_act                   <= #1 1'b0;
-
-	sdaddr<=sdaddr_next;
-	sd_cmd <= sd_cmd_next;
 	
 	// Time slot control
 	case(sdram_state)
@@ -529,7 +530,7 @@ always @ (posedge sysclk) begin
 			if(slot2_write) begin // Write cycle
 //				sdaddr[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot2_addr[25], slot2_addr[9:4]}; // Can't auto-precharge, since we need to interrupt the burst
 //				sdaddr[2:0]         <= #1 slot2_addr[3:1];
-				sdata_out           <= #1 writebufferWR_reg;
+//				sdata_out           <= #1 writebufferWR_reg;
 				sdata_oe            <= #1 1'b1;
 				ba                  <= #1 slot2_bank;
 				sd_cmd              <= #1 CMD_WRITE;
@@ -705,6 +706,7 @@ always @ (posedge sysclk) begin
 			if(slot2_write) begin // Write cycle (2nd word)
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b1, slot2_addr[25], slot2_addr[9:4]}; // auto-precharge
 				sdaddr_next[2:0]         <= #1 slot2_addr[3:1] + 1'd1;
+				sdata_next               <= #1 writebufferWR2_reg;
 			end
 		end
 
@@ -712,7 +714,7 @@ always @ (posedge sysclk) begin
 			if(slot2_write) begin // Write cycle (2nd word)
 //				sdaddr[12:3]        <= #1 {1'b0, 1'b0, 1'b1, slot2_addr[25], slot2_addr[9:4]}; // auto-precharge
 //				sdaddr[2:0]         <= #1 slot2_addr[3:1] + 1'd1;
-				sdata_out           <= #1 writebufferWR2_reg;
+//				sdata_out           <= #1 writebufferWR2_reg;
 				sdata_oe            <= #1 1'b1;
 				ba                  <= #1 slot2_bank;
 				dqm                 <= #1 slot2_dqm2;
@@ -751,6 +753,11 @@ always @ (posedge sysclk) begin
 			if(fast_write && slot1_write && (slot2_write || slot2_type == IDLE)) begin // Write cycle
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot1_addr[25], slot1_addr[9:4]}; // no auto-precharge
 				sdaddr_next[2:0]         <= #1 slot1_addr[3:1];
+				case (slot1_type)
+					CHIP:            sdata_next <= #1 chipWR;
+					CPU_WRITECACHE:  sdata_next <= #1 writebufferWR_reg;
+					default :        sdata_next <= #1 hostWR[31:16];
+				endcase
 			end
 
 		end
@@ -773,17 +780,22 @@ always @ (posedge sysclk) begin
 				ba                  <= #1 slot1_bank;
 				dqm                 <= #1 slot1_dqm;
 				sd_cmd              <= #1 CMD_WRITE;
-				case (slot1_type)
-					CHIP:           sdata_out <= #1 chipWR;
-					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR_reg;
-					default :       sdata_out <= #1 hostWR[31:16];
-				endcase
+//				case (slot1_type)
+//					CHIP:           sdata_out <= #1 chipWR;
+//					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR_reg;
+//					default :       sdata_out <= #1 hostWR[31:16];
+//				endcase
 				sdata_oe            <= #1 1'b1;
 			end
 
 			if(fast_write && slot1_write && (slot2_write || slot2_type == IDLE)) begin // Write cycle (2nd word)
 				sdaddr_next[12:3]    <= #1 {1'b0, 1'b0, 1'b1, slot1_addr[25], slot1_addr[9:4]}; // auto-precharge
 				sdaddr_next[2:0]     <= #1 slot1_addr[3:1] + 1'd1;
+				case (slot1_type)
+					CHIP:            sdata_next <= #1 chipWR2;
+					CPU_WRITECACHE:  sdata_next <= #1 writebufferWR2_reg;
+					default :        sdata_next <= #1 hostWR[15:0];
+				endcase
 			end
 	end
 
@@ -793,11 +805,11 @@ always @ (posedge sysclk) begin
 //				sdaddr[12:3]    <= #1 {1'b0, 1'b0, 1'b1, slot1_addr[25], slot1_addr[9:4]}; // auto-precharge
 //				sdaddr[2:0]     <= #1 slot1_addr[3:1] + 1'd1;
 				ba              <= #1 slot1_bank;
-				case (slot1_type)
-					CHIP:           sdata_out <= #1 chipWR2;
-					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR2_reg;
-					default :       sdata_out <= #1 hostWR[15:0];
-				endcase
+//				case (slot1_type)
+//					CHIP:           sdata_out <= #1 chipWR2;
+//					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR2_reg;
+//					default :       sdata_out <= #1 hostWR[15:0];
+//				endcase
 				sdata_oe            <= #1 1'b1;
 				sd_cmd              <= #1 CMD_WRITE;
 				dqm                 <= #1 slot1_dqm2;
@@ -817,6 +829,11 @@ always @ (posedge sysclk) begin
 			if(slot1_write) begin // Write cycle
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot1_addr[25], slot1_addr[9:4]}; // Can't auto-precharge, since we need to interrupt the burst
 				sdaddr_next[2:0]         <= #1 slot1_addr[3:1];
+				case (slot1_type)
+					CHIP:            sdata_next <= #1 chipWR;
+					CPU_WRITECACHE:  sdata_next <= #1 writebufferWR_reg;
+					default :        sdata_next <= #1 hostWR[31:16];
+				endcase
 			end
 		end
 
@@ -827,11 +844,11 @@ always @ (posedge sysclk) begin
 				ba                  <= #1 slot1_bank;
 				dqm                 <= #1 slot1_dqm;
 				sd_cmd              <= #1 CMD_WRITE;
-				case (slot1_type)
-					CHIP:           sdata_out <= #1 chipWR;
-					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR_reg;
-					default :       sdata_out <= #1 hostWR[31:16];
-				endcase
+//				case (slot1_type)
+//					CHIP:           sdata_out <= #1 chipWR;
+//					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR_reg;
+//					default :       sdata_out <= #1 hostWR[31:16];
+//				endcase
 				sdata_oe            <= #1 1'b1;
 			end
 			cache_fill_1          <= #1 1'b1;
@@ -931,6 +948,11 @@ always @ (posedge sysclk) begin
 			if(slot1_write) begin // Write cycle (2nd word)
 				sdaddr_next[12:3]    <= #1 {1'b0, 1'b0, 1'b1, slot1_addr[25], slot1_addr[9:4]}; // auto-precharge
 				sdaddr_next[2:0]     <= #1 slot1_addr[3:1] + 1'd1;
+				case (slot1_type)
+					CHIP:            sdata_next <= #1 chipWR2;
+					CPU_WRITECACHE:  sdata_next <= #1 writebufferWR2_reg;
+					default :        sdata_next <= #1 hostWR[15:0];
+				endcase
 			end
 
 		end
@@ -940,11 +962,11 @@ always @ (posedge sysclk) begin
 //				sdaddr[12:3]    <= #1 {1'b0, 1'b0, 1'b1, slot1_addr[25], slot1_addr[9:4]}; // auto-precharge
 //				sdaddr[2:0]     <= #1 slot1_addr[3:1] + 1'd1;
 				ba              <= #1 slot1_bank;
-				case (slot1_type)
-					CHIP:           sdata_out <= #1 chipWR2;
-					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR2_reg;
-					default :       sdata_out <= #1 hostWR[15:0];
-				endcase
+//				case (slot1_type)
+//					CHIP:           sdata_out <= #1 chipWR2;
+//					CPU_WRITECACHE:	sdata_out <= #1 writebufferWR2_reg;
+//					default :       sdata_out <= #1 hostWR[15:0];
+//				endcase
 				sdata_oe            <= #1 1'b1;
 				sd_cmd              <= #1 CMD_WRITE;
 				dqm                 <= #1 slot1_dqm2;
@@ -1003,6 +1025,7 @@ always @ (posedge sysclk) begin
 			if(fast_write && slot2_write && (slot1_write || slot1_type == IDLE)) begin // Write cycle
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot2_addr[25], slot2_addr[9:4]}; // Can't auto-precharge, since we need to interrupt the burst
 				sdaddr_next[2:0]         <= #1 slot2_addr[3:1];
+				sdata_next               <= #1 writebufferWR_reg;
 			end
 		end
 
@@ -1021,7 +1044,7 @@ always @ (posedge sysclk) begin
 			if(fast_write && slot2_write && (slot1_write || slot1_type == IDLE)) begin // Write cycle
 //				sdaddr[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot2_addr[25], slot2_addr[9:4]}; // Can't auto-precharge, since we need to interrupt the burst
 //				sdaddr[2:0]         <= #1 slot2_addr[3:1];
-				sdata_out           <= #1 writebufferWR_reg;
+//				sdata_out           <= #1 writebufferWR_reg;
 				sdata_oe            <= #1 1'b1;
 				ba                  <= #1 slot2_bank;
 				sd_cmd              <= #1 CMD_WRITE;
@@ -1031,6 +1054,7 @@ always @ (posedge sysclk) begin
 			if(fast_write && slot2_write && (slot1_write || slot1_type == IDLE)) begin // Write cycle (2nd word)
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b1, slot2_addr[25], slot2_addr[9:4]}; // auto-precharge
 				sdaddr_next[2:0]         <= #1 slot2_addr[3:1] + 1'd1;
+				sdata_next               <= #1 writebufferWR2_reg;
 			end
 		end
 
@@ -1039,7 +1063,7 @@ always @ (posedge sysclk) begin
 			if(fast_write && slot2_write && (slot1_write || slot1_type == IDLE)) begin // Write cycle (2nd word)
 //				sdaddr[12:3]        <= #1 {1'b0, 1'b0, 1'b1, slot2_addr[25], slot2_addr[9:4]}; // auto-precharge
 //				sdaddr[2:0]         <= #1 slot2_addr[3:1] + 1'd1;
-				sdata_out           <= #1 writebufferWR2_reg;
+//				sdata_out           <= #1 writebufferWR2_reg;
 				sdata_oe            <= #1 1'b1;
 				ba                  <= #1 slot2_bank;
 				dqm                 <= #1 slot2_dqm2;
@@ -1058,6 +1082,7 @@ always @ (posedge sysclk) begin
 			if(slot2_write) begin // Write cycle
 				sdaddr_next[12:3]        <= #1 {1'b0, 1'b0, 1'b0, slot2_addr[25], slot2_addr[9:4]}; // Can't auto-precharge, since we need to interrupt the burst
 				sdaddr_next[2:0]         <= #1 slot2_addr[3:1];
+				sdata_next               <= #1 writebufferWR_reg;
 			end
 		end
 

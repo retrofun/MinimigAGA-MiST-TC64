@@ -188,7 +188,7 @@ wire [32-1:0] ddram1_sdr_dat_r;
 wire [ 8-1:0] itram_cpu_adr;
 wire          itram_cpu_we;
 wire [32-1:0] itram_cpu_dat_w;
-wire [32-1:0] itram_cpu_dat_r;
+reg  [32-1:0] itram_cpu_dat_r;
 wire [ 8-1:0] itram_sdr_adr;
 wire          itram_sdr_we;
 wire [32-1:0] itram_sdr_dat_w;
@@ -209,7 +209,7 @@ wire          sdr_itag1_valid;
 wire [ 8-1:0] dtram_cpu_adr;
 wire          dtram_cpu_we;
 wire [32-1:0] dtram_cpu_dat_w;
-wire [32-1:0] dtram_cpu_dat_r;
+reg  [32-1:0] dtram_cpu_dat_r;
 wire [ 8-1:0] dtram_sdr_adr;
 wire          dtram_sdr_we;
 wire [32-1:0] dtram_sdr_dat_w;
@@ -226,6 +226,11 @@ wire          sdr_dtag_hit;
 wire          sdr_dtag_lru;
 wire          sdr_dtag0_valid;
 wire          sdr_dtag1_valid;
+
+reg itag0_en;
+reg itag1_en;
+reg dtag0_en;
+reg dtag1_en;
 
 //// params ////
 
@@ -328,6 +333,12 @@ reg [3:0] level2_i_we;
 reg [3:0] level2_d_we;
 reg [31:0] level2_wdat;
 reg [1:0] level2_a;
+
+always @(posedge clk) begin
+	cpu_dat_l <= cpu_dat_w;
+	cpu_bs_l <= cpu_bs;
+end
+
 
 // cpu side state machine
 always @ (posedge clk) begin
@@ -441,8 +452,8 @@ always @ (posedge clk) begin
                 cpu_sm_state <= #1 CPU_SM_WAIT_LOWORD;
               end else begin
                 cpu_sm_state <= #1 CPU_SM_WRITE;
-                cpu_dat_l <= cpu_dat_w;
-                cpu_bs_l <= cpu_bs;
+//                cpu_dat_l <= cpu_dat_w;
+//                cpu_bs_l <= cpu_bs;
               end
             end else begin
               cpu_cacheline_ready <= 1'b1;
@@ -492,8 +503,8 @@ always @ (posedge clk) begin
             // unaligned 32 bit write, hi word
             cpu_sm_bs <= #1 {~sdr_dqm_w[1:0], 2'b00};
             cpu_sm_mem_dat_w[31:16] <= #1 sdr_dat_w[15:0];
-            cpu_dat_l <= cpu_dat_w;
-            cpu_bs_l <= cpu_bs;
+//            cpu_dat_l <= cpu_dat_w;
+//            cpu_bs_l <= cpu_bs;
             cpu_sm_state <= #1 CPU_SM_WRITE;
           end else begin
             // aligned 32 bit write, do it in one step
@@ -546,28 +557,28 @@ always @ (posedge clk) begin
 
 		level2_a <= cpu_adr_blk_ptr_prev[2:1];
 		
-        if (cc_en && itag0_match && itag0_valid && level1_i) begin
+        if (itag0_en) begin
           // data is already in instruction cache way 0
           cpu_sm_itag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b0, itram_cpu_dat_r[30:0]};
           level2_i_we<=4'b1111;
           level2_wdat<= idram0_cpu_dat_r;
 
-        end else if (cc_en && itag1_match && itag1_valid && level1_i) begin
+        end else if (itag1_en) begin
           // data is already in instruction cache way 1
           cpu_sm_itag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b1, itram_cpu_dat_r[30:0]};
           level2_i_we<=4'b1111;
           level2_wdat<= idram1_cpu_dat_r;
 
-        end else if (cc_en && dtag0_match && dtag0_valid && level1_d) begin
+        end else if (dtag0_en) begin
           // data is already in data cache way 0
           cpu_sm_dtag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b0, dtram_cpu_dat_r[30:0]};
           level2_d_we<=4'b1111;
           level2_wdat<= ddram0_cpu_dat_r;
 
-        end else if (cc_en && dtag1_match && dtag1_valid && level1_d) begin
+        end else if (dtag1_en) begin
           // data is already in data cache way 1
           cpu_sm_dtag_we <= #1 (cpu_cacheline_cnt == 2'b00); // update at the first cycle only
           cpu_sm_tag_dat_w <= #1 {1'b1, dtram_cpu_dat_r[30:0]};
@@ -803,6 +814,8 @@ end
 //// instruction memories ////
 
 // instruction tag ram
+wire [31:0] itram_cpu_dat_i;
+
 assign itram_cpu_adr    = cpu_adr_idx;
 assign itram_cpu_we     = cpu_sm_itag_we;
 assign itram_cpu_dat_w  = cpu_sm_tag_dat_w;
@@ -812,6 +825,10 @@ assign itag_hit         = itag0_match || itag1_match;
 assign itag_lru         = itram_cpu_dat_r[31];
 assign itag0_valid      = itram_cpu_dat_r[30];
 assign itag1_valid      = itram_cpu_dat_r[29];
+
+always @(posedge clk) itag0_en <= cc_en & cpu_ir & itram_cpu_dat_i[30] && (cpu_adr_tag == itram_cpu_dat_i[13:0]);
+always @(posedge clk) itag1_en <= cc_en & cpu_ir & itram_cpu_dat_i[29] && (cpu_adr_tag == itram_cpu_dat_i[27:14]);
+
 assign itram_sdr_adr    = sdr_sm_adr[9:2];
 assign itram_sdr_we     = sdr_sm_itag_we;
 assign itram_sdr_dat_w  = sdr_sm_tag_dat_w;
@@ -832,12 +849,14 @@ itram (
   .address_a  (itram_cpu_adr    ),
   .wren_a     (itram_cpu_we     ),
   .data_a     (itram_cpu_dat_w  ),
-  .q_a        (itram_cpu_dat_r  ),
+  .q_a        (itram_cpu_dat_i  ),
   .address_b  (itram_sdr_adr    ),
   .wren_b     (itram_sdr_we     ),
   .data_b     (itram_sdr_dat_w  ),
   .q_b        (itram_sdr_dat_r  )
 );
+
+always @(posedge clk) itram_cpu_dat_r <= itram_cpu_dat_i;
 
 // instruction data ram 0
 assign idram0_cpu_adr   = cpu_sm_adr[10:1];
@@ -900,6 +919,8 @@ idram1 (
 
 //// data data memories ////
 
+wire [31:0] dtram_cpu_dat_i;
+
 // data tag ram
 assign dtram_cpu_adr    = cpu_adr_idx;
 assign dtram_cpu_we     = cpu_sm_dtag_we;
@@ -910,6 +931,10 @@ assign dtag_hit         = dtag0_match || dtag1_match;
 assign dtag_lru         = dtram_cpu_dat_r[31];
 assign dtag0_valid      = dtram_cpu_dat_r[30];
 assign dtag1_valid      = dtram_cpu_dat_r[29];
+
+always @(posedge clk) dtag0_en <= cc_en & cpu_dr & dtram_cpu_dat_i[30] && (cpu_adr_tag == dtram_cpu_dat_i[13:0]);
+always @(posedge clk) dtag1_en <= cc_en & cpu_dr & dtram_cpu_dat_i[29] && (cpu_adr_tag == dtram_cpu_dat_i[27:14]);
+
 assign dtram_sdr_adr    = sdr_sm_adr[9:2];
 assign dtram_sdr_we     = sdr_sm_dtag_we;
 assign dtram_sdr_dat_w  = sdr_sm_tag_dat_w;
@@ -930,12 +955,14 @@ dtram (
   .address_a  (dtram_cpu_adr    ),
   .wren_a     (dtram_cpu_we     ),
   .data_a     (dtram_cpu_dat_w  ),
-  .q_a        (dtram_cpu_dat_r  ),
+  .q_a        (dtram_cpu_dat_i  ),
   .address_b  (dtram_sdr_adr    ),
   .wren_b     (dtram_sdr_we     ),
   .data_b     (dtram_sdr_dat_w  ),
   .q_b        (dtram_sdr_dat_r  )
 );
+
+always @(posedge clk) dtram_cpu_dat_r <= dtram_cpu_dat_i;
 
 // data data ram 0
 assign ddram0_cpu_adr   = cpu_sm_adr[10:1];
