@@ -1077,6 +1077,14 @@ end
 
 `endif
 
+`ifdef MINIMIG_CAPTURE_SYNC
+edge_capture #(.bits(3)) synccapture (
+	.clk(clk_114),
+	.reset(~tg68_rst),
+	.d({mixer_de,mixer_vs,mixer_hs})
+);
+`endif
+
 // Auxiliary audio
 `ifdef MINIMIG_AUX_AUDIO
 reg aud_tick;

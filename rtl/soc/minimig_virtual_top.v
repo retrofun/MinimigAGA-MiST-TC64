@@ -871,7 +871,7 @@ video_vga_dither #(.outbits(vga_width), .flickerreduce("true")) dither
 	.ena(rtg_ena),
 	.pixel(rtg_pixel),
 	.vidEna(vga_window),
-	.iSelcsync(selcsync),
+	.iSelcsync(1'b0), // selcsync),
 	.iCsync(VGA_CS_INT),
 	.iHsync(VGA_HS_INT),
 	.iVsync(VGA_VS_INT),
@@ -894,6 +894,14 @@ always @(posedge CLK_114) begin
 	VGA_G <= dithered_green[7:8-vga_width];
 	VGA_B <= dithered_blue[7:8-vga_width];
 end
+
+`ifdef MINIMIG_CAPTURE_SYNC
+edge_capture #(.bits(2)) synccapture (
+	.clk(CLK_114),
+	.reset(~tg68_rst),
+	.d({VGA_VS_INT,VGA_HS_INT})
+);
+`endif
 
 endmodule
 

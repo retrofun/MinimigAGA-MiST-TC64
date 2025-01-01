@@ -38,7 +38,7 @@ module agnus_beamcounter
 	input	[15:0] data_in,			// bus data in
 	output	reg [15:0] data_out,	// bus data out
 	input 	[8:1] reg_address_in,	// register address inputs
-	output	reg [8:0] hpos,			// horizontal beam counter (140ns)
+	output  [8:0] hpos,			// horizontal beam counter (140ns)
 	output	reg [10:0] vpos,		// vertical beam counter
 	output	reg _hsync,				// horizontal sync
 	output	wire hsyncpol,			// horizontal sync polarity
@@ -97,11 +97,11 @@ parameter	HCENTER_VAL     = 256+4+4;	// position of vsync pulse during the long 
 parameter	VSSTRT_VAL      = 2; //3	// vertical sync start
 parameter	VSSTOP_VAL      = 5;	// PAL vsync width: 2.5 lines (NTSC: 3 lines - not implemented)
 parameter	VBSTRT_VAL      = 0;	// vertical blanking start
-parameter HTOTAL_VAL      = 8'd227 - 8'd1; // line length of 227 CCKs in PAL mode (NTSC line length of 227.5 CCKs is not supported)
+parameter HTOTAL_VAL      = 9'd227 - 9'd1; // line length of 227 CCKs in PAL mode (NTSC line length of 227.5 CCKs is not supported)
 parameter VTOTAL_PAL_VAL  = 11'd312 - 11'd1; // total number of lines (PAL: 312 lines, NTSC: 262)
 parameter VTOTAL_NTSC_VAL = 11'd262 - 11'd1; // total number of lines (PAL: 312 lines, NTSC: 262)
-parameter VBSTOP_PAL_VAL  = 9'd25; // vertical blanking end (PAL 26 lines, NTSC vblank 21 lines)
-parameter VBSTOP_NTSC_VAL = 9'd20; // vertical blanking end (PAL 26 lines, NTSC vblank 21 lines)
+parameter VBSTOP_PAL_VAL  = 11'd25; // vertical blanking end (PAL 26 lines, NTSC vblank 21 lines)
+parameter VBSTOP_NTSC_VAL = 11'd20; // vertical blanking end (PAL 26 lines, NTSC vblank 21 lines)
 
 //wire	[8:0] vbstop;		// vertical blanking stop
 
@@ -251,6 +251,7 @@ always @ (posedge clk) begin
 			  VSSTOP [8:1] : vsstop_reg  <= #1 {data_in[10:0]};
 			  VBSTRT [8:1] : vbstrt_reg  <= #1 {data_in[10:0]};
 			  VBSTOP [8:1] : vbstop_reg  <= #1 {data_in[10:0]};
+			  default: ;
 			endcase
 		end
 		if(displaydual && lpendis) begin  // Shadow regs when RTG is on and lpendis is high
@@ -267,6 +268,7 @@ always @ (posedge clk) begin
 			  VSSTOP [8:1] : vsstop_sh  <= #1 {data_in[10:0]};
 			  VBSTRT [8:1] : vbstrt_sh  <= #1 {data_in[10:0]};
 			  VBSTOP [8:1] : vbstop_sh  <= #1 {data_in[10:0]};
+			  default: ;
 			endcase
 		end
     end
@@ -318,19 +320,20 @@ always @(posedge clk)
   		end_of_line <= 1'b0;
   end
 
+reg [8:1] hpos_r;
+
 // horizontal beamcounter
 always @(posedge clk)
   if (clk7_en) begin
   	if (reg_address_in[8:1]==VHPOSW[8:1])
-  		hpos[8:1] <= data_in[7:0]; 
+  		hpos_r[8:1] <= data_in[7:0]; 
   	else if (end_of_line)
-  		hpos[8:1] <= 0;
+  		hpos_r[8:1] <= 0;
   	else if (cck && (~ersy || |hpos[8:1]))
-  		hpos[8:1] <= hpos[8:1] + 1'b1;
+  		hpos_r[8:1] <= hpos[8:1] + 1'b1;
   end
 
-always @(cck)
-	hpos[0] = cck;
+assign hpos = {hpos_r,cck};
 
 //long line signal (not used, only for better NTSC compatibility)
 always @(posedge clk)
@@ -434,9 +437,9 @@ always @(posedge clk)
 //vertical sync and vertical blanking
 always @(posedge clk)
   if (clk7_en) begin
-  	if ((vpos==vsstrt && hpos==hsstrt && !long_frame) || (vpos==vsstrt && hpos==hcenter && long_frame))
+  	if ((vpos==vsstrt+1 && hpos==hsstrt && long_frame) || (vpos==vsstrt && hpos==hcenter && !long_frame))
   		_vsync <= 1'b0;
-  	else if ((vpos==vsstop && hpos==hcenter && !long_frame) || (vpos==vsstop+1 && hpos==hsstrt && long_frame))
+  	else if ((vpos==vsstop && hpos==hcenter && long_frame) || (vpos==vsstop && hpos==hsstrt && !long_frame))
   		_vsync <= 1'b1;
   end
 

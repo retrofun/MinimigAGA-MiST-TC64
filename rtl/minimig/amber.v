@@ -161,7 +161,7 @@ end
 
 // scandoubler line buffer read pointer
 always @ (posedge clk) begin
-  if (hss || !dblscan || (sd_lbuf_rd == {htotal[8:1],2'b11})) // reset at horizontal sync start and end of scandoubled line
+  if (hss || !dblscan || (sd_lbuf_rd == {1'b0,htotal[8:1],2'b11})) // reset at horizontal sync start and end of scandoubled line
     sd_lbuf_rd <= #1 11'd0;
   else
     sd_lbuf_rd <= #1 sd_lbuf_rd + 11'd1;
@@ -203,7 +203,7 @@ end
 // vertical interpolation line buffer write/read
 always @ (posedge clk) begin
   // write
-  vi_lbuf[sd_lbuf_rd[9:0]] <= #1 sd_lbuf_o;
+  vi_lbuf[sd_lbuf_rd[9:0]] <= #1 sd_lbuf_o[29:0];
   // read
   vi_lbuf_o <= #1 vi_lbuf[sd_lbuf_rd[9:0]];
 end
@@ -277,7 +277,7 @@ always @ (posedge clk) begin
     v_cnt <= #1 1'b0;
     h_cnt <= #1 1'b0;
   end else if (|dither) begin
-    if (sd_lbuf_rd == {htotal[8:1],2'b11}) v_cnt <= #1 ~v_cnt;
+    if (sd_lbuf_rd == {1'b0,htotal[8:1],2'b11}) v_cnt <= #1 ~v_cnt;
     h_cnt <= #1 ~h_cnt;
   end
 end
@@ -332,7 +332,7 @@ reg            ns_osd_pixel;
 always @ (posedge clk) begin
   if (hss) // reset at horizontal sync start
     sl_en <= #1 1'b0;
-  else if (sd_lbuf_rd == {htotal[8:1],2'b11}) // set at end of scandoubled line
+  else if (sd_lbuf_rd == {1'b0,htotal[8:1],2'b11}) // set at end of scandoubled line
     sl_en <= #1 1'b1;
 end
 
