@@ -49,12 +49,12 @@ int main(int argc, char **argv) {
 	clocks(1);
 
 	tb->cpu_address=0x100; /* BPLCON0 */
-	tb->cpu_data_in=4;
+	tb->cpu_data_in=4; /* Enable lace */
 	clocks(8);
 	tb->cpu_address=0x1ff; /* IDLE */
 	clocks(8);
 
-	int frames=8;
+	int frames=10;
 	int vsp=tb->vsync;
 	int blankp=tb->blank;
 	int blank_to_vsync=-1;

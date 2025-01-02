@@ -3,23 +3,9 @@
 module chipset_tb(
   input  wire           clk_28,
   input  wire           reset,
-  input  wire           clk7en_rd,
-  input  wire           clk7en_wr,
   input  wire [23:0]    cpu_address,
-  output wire [15:0]    cpu_data,
-  output wire [15:0]    cpu_data2,
   input  wire [15:0]    cpu_data_in,
-  input  wire           cpu_as,
-  input  wire           cpu_uds,
-  input  wire           cpu_uds2,
-  input  wire           cpu_lds,
-  input  wire           cpu_lds2,
-  input  wire           cpu_r_w,
-  output wire           cpu_dtack,
-  input  wire           cpu_reset_in,
-  output wire [15:0]    ram_data,
-  input  wire [15:0]    ram_data_in,
-  output wire [22:0]    ram_address,
+  output wire [15:0]    cpu_data,
   output wire           hsync,
   output wire           vsync,
   output wire           blank
@@ -39,6 +25,7 @@ always @(posedge clk_28)
 wire clk7_en=&cck_ctr[1:0];
 wire cck=cck_ctr[2];
 wire [8:0] htotal;
+wire long_frame;
 
 agnus_beamcounter beamcounter
 (
@@ -72,7 +59,8 @@ agnus_beamcounter beamcounter
 	.varbeamen_out(),
 	.rtg_ena(),
 	.rtg_linecompare(),
-	.hblank_out()
+	.hblank_out(),
+	.long_frame(long_frame)
 );
 
 amber scandoubler
@@ -88,6 +76,7 @@ amber scandoubler
 	// control
 	.htotal(htotal),         // video line length
 	.hires(1'b1),          // display is in hires mode (from bplcon0)
+	.long_frame(long_frame),
 	// osd
 	.osd_blank(1'b0),      // OSD overlay enable (blank normal video)
 	.osd_pixel(1'b0),      // OSD pixel(video) data

@@ -64,7 +64,8 @@ proc report_log {} {
 		set timelast $timestamp
 		set hs [expr $word & 1]
 		set vs [expr ($word >> 1) & 1]
-		puts [format "t: %10d, dt: %10d, vs: %d, hs: %d" $timestamp $dtime $vs $hs]
+		set de [expr ($word >> 2) & 1]
+		puts [format "t: %10d, dt: %10d, vs: %d, hs: %d, de: %d" $timestamp $dtime $vs $hs $de]
 		set word [get_word]
 	}
 }
@@ -82,41 +83,12 @@ proc connect {} {
 	}
 }
 
-
-proc drain_fifo {} {
-	global connected
-	if {$connected} {
-		if [ vjtag::usbblaster_open ] {
-			while {[vjtag::recv] >-1 } {
-			}
-			vjtag::usbblaster_close
-		}
-	}
-}
-
-
-proc send_fetch {} {
-	global CMD_FETCH
-
-	drain_fifo
-	send_cmd $CMD_REPORT
-
-	if {$connected} {
-		if [ vjtag::usbblaster_open ] {
-			set v1 [vjtag::recv_blocking]
-			set v2 [vjtag::recv_blocking]
-			puts $v1 $v2
-		}
-		vjtag::usbblaster_close
-	}
-}
-
 connect
 
 send_cmd $CMD_RESET
-send_cmd $CMD_MASK 0x2
-send_cmd $CMD_INITMASK 0x0
-send_cmd $CMD_INITSTATE 0x0
+send_cmd $CMD_MASK 0x6
+send_cmd $CMD_INITMASK 0x7
+send_cmd $CMD_INITSTATE 0x7
 
 send_cmd $CMD_GO
 wait_log

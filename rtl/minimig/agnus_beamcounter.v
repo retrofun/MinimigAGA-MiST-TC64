@@ -56,7 +56,8 @@ module agnus_beamcounter
 	output varbeamen_out,
 	output rtg_ena,
 	output rtg_linecompare,
-	output reg hblank_out
+	output reg hblank_out,
+	output long_frame
 );
 
 // local beam position counters
@@ -65,7 +66,7 @@ reg		lace;
 
 //local signals for beam counters and sync generator
 reg		long_frame_r;		// 1 : long frame (313 lines); 0 : normal frame (312 lines)
-wire		long_frame;
+//wire		long_frame;
 reg		long_line;		// long line signal for NTSC compatibility (actually long lines are not supported yet)
 reg		vser;			// vertical sync serration pulses for composite sync
 

@@ -65,6 +65,7 @@ module amber
   // control
   input  wire [  9-1:0] htotal,         // video line length
   input  wire           hires,          // display is in hires mode (from bplcon0)
+  input  wire           long_frame,     // for interlaced mode
   // osd
   input  wire           osd_blank,      // OSD overlay enable (blank normal video)
   input  wire           osd_pixel,      // OSD pixel(video) data
@@ -110,6 +111,14 @@ always @ (posedge clk) begin
   vss           <= #1 ~_vsync_in & _vsync_in_del;
 end
 
+// Interlace long frame detection
+// reg long_frame;
+
+// always @(posedge clk) begin
+//	if(vss)
+//		long_frame <= ~_hsync_in;
+// end
+
 
 //// horizontal interpolation ////
 reg            hi_en=0;                 // horizontal interpolation enable
@@ -151,6 +160,9 @@ reg  [ 31-1:0] sd_lbuf_o=0;             // line buffer output register
 reg  [ 31-1:0] sd_lbuf_o_d=0;           // compensantion for one clock delay of the second line buffer
 reg  [ 11-1:0] sd_lbuf_rd=0;            // line buffer read pointer
 
+reg sd_bbuf[0:1024-1]; // Buffer for delayed blank signal
+reg sd_bbuf_o;
+
 // scandoubler line buffer write pointer
 always @ (posedge clk) begin
   if (hss || !dblscan)
@@ -175,6 +187,10 @@ always @ (posedge clk) begin
     // read
     sd_lbuf_o <= #1 sd_lbuf[sd_lbuf_rd[9:0]];
     // delayed data
+    
+    sd_bbuf[sd_lbuf_rd[9:0]] <= #1 sd_lbuf_o[30];
+    sd_bbuf_o <= sd_bbuf[sd_lbuf_rd[9:0]];
+    
     sd_lbuf_o_d <= #1 sd_lbuf_o;
   end
 end
@@ -365,7 +381,7 @@ wire           bm_osd_blank;
 wire           bm_osd_pixel;
 
 assign selcsync     = dblscan ? 1'b0 : varbeamen ? 1'b0 : 1'b1;
-assign bm_blank     = dblscan ? sd_lbuf_o_d[30] : blank_in;
+assign bm_blank     = dblscan ? ( long_frame ? sd_bbuf_o : sd_lbuf_o_d[30] ) : blank_in;
 assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : _hsync_in;
 assign bm_vsync     = dblscan ? _vsync_in       : _vsync_in;
 //assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : varbeamen ? _hsync_in : ns_csync;

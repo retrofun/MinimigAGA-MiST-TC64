@@ -75,6 +75,7 @@ module agnus
   output  vsyncpol,			  // vertical sync polarity
   output  _csync,            // composite sync
   output  blank,            // video blanking
+  output  long_frame,      // for interlacing
   output  sol,            // start of video line (active during last pixel of previous line)
   output  sof,            // start of video frame (active during last pixel of previous frame)
   output  vbl_int,          // vertical blanking interrupt request for Paula
@@ -492,7 +493,8 @@ agnus_beamcounter  bc1
   .varbeamen_out(varbeamen),
   .rtg_ena(rtg_ena),
   .rtg_linecompare(rtg_linecompare),
-  .hblank_out(hblank_out)
+  .hblank_out(hblank_out),
+  .long_frame(long_frame)
 );
 
 assign vblank_out = vbl;

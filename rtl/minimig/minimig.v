@@ -486,6 +486,8 @@ assign reset = sys_reset | ~_cpu_reset_in; // both tg68k and minimig_syscontrol 
 
 assign vblank_out = vbl_int;
 
+wire long_frame;
+
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
 
@@ -568,6 +570,7 @@ agnus AGNUS1
 	.vsyncpol(vsyncpol),
 	._csync(_csync_i),
 	.blank(blank),
+	.long_frame(long_frame),
 	.sol(sol),
 	.sof(sof),
   .vbl_int(vbl_int),
@@ -828,6 +831,7 @@ amber AMBER1
   .dither(dither),
 	.htotal(htotal),
 	.hires(hires),
+	.long_frame(long_frame),
 	.osd_blank(osd_blank),
 	.osd_pixel(osd_pixel),
 	.red_in(red_i),
