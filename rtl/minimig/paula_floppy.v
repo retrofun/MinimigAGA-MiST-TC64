@@ -406,7 +406,7 @@ always @(posedge clk)
 //---------------------------------------------------------------------------------------------------------------------
 
 //HDD interface
-assign hdd_addr = cmd_hdd_rd ? tx_data_cnt : cmd_hdd_wr ? rx_data_cnt : 1'b0;
+assign hdd_addr = cmd_hdd_rd ? tx_data_cnt : cmd_hdd_wr ? rx_data_cnt : 3'b0;
 assign hdd_wr = cmd_hdd_wr && rx_strobe && rx_cnt==2'd3 ? 1'b1 : 1'b0;
 assign hdd_data_wr = qrx_strobe || (cmd_hdd_data_wr && rx_strobe && rx_cnt==2'd3) || (direct_flag && rx_strobe);
 assign hdd_cdda_wr = cmd_hdd_cdda_wr && rx_strobe && rx_cnt==2'd3 ? 1'b1 : 1'b0;

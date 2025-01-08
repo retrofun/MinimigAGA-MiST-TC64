@@ -37,7 +37,7 @@ assign roma_rd[5:0] = address_in[6:1];
 assign roma_rd[8:6] = acdevice;
 assign data_out = sel ? {rom_q,12'hfff} : 16'h0000;
 
-Autoconfig_ROM acrom
+minimig_autoconfig_rom acrom
 (
 	.clk(clk),
 	.a_read(roma_rd),
@@ -55,7 +55,7 @@ begin
 
 	if(reset)
 	begin
-		init=1'b1;
+		init<=1'b1;
 		board_configured<=6'b000000;
 		acdevice<=3'b000;
 		ramsize<=4'b1111;	// Disable RAM briefly at reset
@@ -92,8 +92,8 @@ begin
 				9'h048 : begin	// Zorro II configures at 48
 					case(acdevice)
 						3'b000 : begin // ZII RAM
-								roma_wr[8:6] = 3'b001;	// First ZIII entry
-								roma_wr[5:0] = 6'h01;	// Write address for modifying size of 1st ZIII RAM.
+								roma_wr[8:6] <= 3'b001;	// First ZIII entry
+								roma_wr[5:0] <= 6'h01;	// Write address for modifying size of 1st ZIII RAM.
 								ramsize <= ram_64meg[1] ? 4'b0010 : 4'b0000; // 64 meg or 16 meg
 								rom_we<=1'b1;
 
@@ -119,8 +119,8 @@ begin
 						3'b001 : begin // ZIII RAM
 								board_configured[1] <= 1'b1;
 								
-								roma_wr[8:6] = 3'b011;	// Third ZIII entry
-								roma_wr[5:0] = 6'h05;	// Write address for modifying size of 3rd ZIII RAM.
+								roma_wr[8:6] <= 3'b011;	// Third ZIII entry
+								roma_wr[5:0] <= 6'h05;	// Write address for modifying size of 3rd ZIII RAM.
 								ramsize <= ram_64meg[1] ? 4'b1111 : (|slowram_config ? 4'b1000 : 4'b0111); // 16 meg if dual SDRAM, otherwise 2 meg or 4 meg depending on slowram config.
 								rom_we<=1'b1;
 								// skip straight to 3'b011 on 32 meg platforms
@@ -165,6 +165,8 @@ begin
 							;
 					endcase
 				end
+				default:
+					;
 			endcase
 		end
 	end

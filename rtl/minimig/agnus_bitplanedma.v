@@ -453,11 +453,11 @@ end
 always @ (*) begin
   if (mod) begin
     if (plane[0]) // even plane modulo
-      newpt[20:1] = address_out[20:1] + {{5{bpl2mod_bscan[15]}},bpl2mod_bscan[15:1]} + (fmode[1:0] == 2'b11 ? 3'd4 : fmode[1:0] == 2'b00 ? 3'd1 : 3'd2);
+      newpt[20:1] = address_out[20:1] + {{5{bpl2mod_bscan[15]}},bpl2mod_bscan[15:1]} + (fmode[1:0] == 2'b11 ? 4 : fmode[1:0] == 2'b00 ? 1 : 2);
     else // odd plane modulo
-      newpt[20:1] = address_out[20:1] + {{5{bpl1mod_bscan[15]}},bpl1mod_bscan[15:1]} + (fmode[1:0] == 2'b11 ? 3'd4 : fmode[1:0] == 2'b00 ? 3'd1 : 3'd2);
+      newpt[20:1] = address_out[20:1] + {{5{bpl1mod_bscan[15]}},bpl1mod_bscan[15:1]} + (fmode[1:0] == 2'b11 ? 4 : fmode[1:0] == 2'b00 ? 1 : 2);
   end else begin
-    newpt[20:1] = address_out[20:1] + (fmode[1:0] == 2'b11 ? 3'd4 : fmode[1:0] == 2'b00 ? 3'd1 : 3'd2);
+    newpt[20:1] = address_out[20:1] + (fmode[1:0] == 2'b11 ? 4 : fmode[1:0] == 2'b00 ? 1 : 2);
   end
 end
 

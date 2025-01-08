@@ -47,9 +47,9 @@ reg [15:0] fifo_out;
 
 wire [FIFO_DEPTH:0] fifo_used = inptr >= outptr ?
                                 inptr - outptr :
-                                inptr - outptr + (2'd2**FIFO_DEPTH);
+                                inptr - outptr + (2**FIFO_DEPTH);
 
-assign hdd_cdda_req = fifo_used < ((2'd2**FIFO_DEPTH) - 16'd2352);
+assign hdd_cdda_req = fifo_used < ((2**FIFO_DEPTH) - 2352);
 
 always @(posedge clk_sys) begin
 	if (reset)
@@ -78,7 +78,7 @@ always @(posedge clk_sys) begin
 		if (cen_44100) begin
 			if (fifo_used >= 2352)
 				fifo_active <= 1;
-			if (outptr + 2'd2 == inptr)
+			if (outptr + 2 == inptr)
 				fifo_active <= 0;
 			if (fifo_active) begin
 				outptr <= outptr + 1'd1;

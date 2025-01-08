@@ -103,7 +103,7 @@ always @(posedge clk)
       tod[11:0] <= tod[11:0] + 12'd1;
     end
 	 else if (count_ena && count_del)
-	   tod[23:12] <= tod[23:12] + todcarry;
+	   tod[23:12] <= tod[23:12] + {11'b0,todcarry};
 	
   end
 

@@ -1,4 +1,4 @@
-module Autoconfig_ROM
+module minimig_autoconfig_rom
 (
 	input clk,
 	input [3:0] d,

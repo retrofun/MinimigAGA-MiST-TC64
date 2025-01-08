@@ -53,7 +53,7 @@ signal headroom_r : signed(3 downto 0);
 
 signal overflow : std_logic;
 signal clipped : signed(signalwidth+volumewidth-1 downto 0);
-
+signal clamped : signed(signalwidth+volumewidth-1 downto 0);
 begin
 
 	process(clk) begin
@@ -110,9 +110,9 @@ begin
 		'0' when headroom = "0000" else
 		'0' when headroom = "1111" else
 		'1';
-	clipped <= accumulator(signalwidth+volumewidth-1 downto 0) when overflow='0' else
-		((signalwidth+volumewidth-1) => accumulator(accumulator'high),
-		  others=>not accumulator(accumulator'high));
+	clamped(signalwidth+volumewidth-1)<=accumulator(accumulator'high);
+	clamped(signalwidth+volumewidth-2 downto 0) <= (others => not accumulator(accumulator'high));
+	clipped <= accumulator(signalwidth+volumewidth-1 downto 0) when overflow='0' else clamped;
 
 	-- Output summed and clipped audio immediately after the last channel has been added in.
 	

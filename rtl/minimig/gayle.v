@@ -214,6 +214,7 @@ ide ide (
 	.address_in(address_in[4:2]),
 	.data_in(data_in),
 	.data_out(ide_out),
+	.data_oe(),
 	.rd(rd),
 	.fast_rd_ena(fast_rd_ena),
 	.hwr(hwr),

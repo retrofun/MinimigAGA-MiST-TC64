@@ -565,6 +565,7 @@ always @ (posedge clk) begin
           wr_state <= #1 ST_WR_IDLE;
           wr_fifo_rd_en <= #1 1'b0;
         end
+        default: ;
       endcase
     end
   end
@@ -581,6 +582,7 @@ always @ (posedge clk) begin
         1 : mem_cnt [15: 8] <= #1 wrdat[7:0];
         2 : mem_cnt [23:16] <= #1 wrdat[7:0];
         3 : mem_page[ 7: 0] <= #1 wrdat[7:0];
+        default: ;
       endcase
     end else if (wr_fifo_rd_en) mem_cnt [23:0] <= #1 mem_cnt + 24'd2;
   end
@@ -596,9 +598,9 @@ assign host_adr  = mem_adr[23:0];
 reg  [8-1:0] rtl_ver;
 always @ (*) begin
   case (dat_cnt[2:0])
-    2'b00   : rtl_ver = BETA_FLAG;
-    2'b01   : rtl_ver = MAJOR_VER;
-    2'b10   : rtl_ver = MINOR_VER;
+    3'b000   : rtl_ver = BETA_FLAG;
+    3'b001   : rtl_ver = MAJOR_VER;
+    3'b010   : rtl_ver = MINOR_VER;
     default : rtl_ver = MINION_VER;
   endcase
 end

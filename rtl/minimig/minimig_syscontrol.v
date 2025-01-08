@@ -41,7 +41,11 @@ always @(posedge clk) begin
   if (clk7_en) begin
   	if (smrst1)
   		rst_cnt <= 3'd0;
+`ifdef VERILATOR
+	else if (!_rst)
+`else
   	else if (!_rst && cnt)
+`endif
   		rst_cnt <= rst_cnt + 3'd1;
   end
 end

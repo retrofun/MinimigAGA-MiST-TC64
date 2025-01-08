@@ -205,7 +205,8 @@ cia_timera tmra
   .data_out(tmra_out),
   .eclk(eclk),
   .tmra_ovf(tmra_ovf),
-  .irq(ta)
+  .irq(ta),
+  .spmode()
 );
 
 //----------------------------------------------------------------------------------

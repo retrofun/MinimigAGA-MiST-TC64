@@ -570,6 +570,7 @@ agnus AGNUS1
 	.vsyncpol(vsyncpol),
 	._csync(_csync_i),
 	.blank(blank),
+	.vblank_out(),
 	.long_frame(long_frame),
 	.sol(sol),
 	.sof(sof),
@@ -887,7 +888,11 @@ amiga_keyboard kbd
 
 	.key_strobe( key_strobe ),
 	.key_data  ( key_data ),
-	.keyack    ( keyack )
+	.keyack    ( keyack ),
+	
+	.joy_emu   ( ),
+	.kbclk     (),
+	.kbdata    ()
 );
 
 //instantiate cia A
@@ -1161,7 +1166,7 @@ assign hdd_sound = drivesound_hdd & hdd_sound_i;
 
 reg         cen_44100;
 reg  [31:0] cen_44100_cnt;
-wire [31:0] cen_44100_cnt_next = cen_44100_cnt + 16'd44100;
+wire [31:0] cen_44100_cnt_next = cen_44100_cnt + 32'd44100;
 always @(posedge clk) begin
 	cen_44100 <= 0;
 	cen_44100_cnt <= cen_44100_cnt_next;
@@ -1217,7 +1222,7 @@ minimig_autoconfig#(.TOCCATA_SND(MMTOC),.CONTROL_BOARD(MMCB)) autoconfig
 	.clk(clk),
 	.clk7_en(clk7_en),
 	.reset(reset),
-	.address_in(cpu_address_out),
+	.address_in(cpu_address_out[8:1]),
 	.data_in(cpu_data_out),
 	.data_out(autoconfig_data_out),
 	.rd(cpu_rd),
@@ -1229,6 +1234,8 @@ minimig_autoconfig#(.TOCCATA_SND(MMTOC),.CONTROL_BOARD(MMCB)) autoconfig
 	.ram_64meg(ram_64meg),
 	.slowram_config(memory_config[3:2]),
 	.board_configured(board_configured_i),
+	.board_shutup(),
+	.autoconfig_done(),
 	.toccata_base_addr(toccata_base_addr),
 	.control_base_addr(control_base_addr)
 );

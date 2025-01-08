@@ -172,7 +172,7 @@ assign ptsel = (ackdma) ? sprite : reg_address_in[4:2];
 assign pcsel = (ackdma) ? sprite : reg_address_in[5:3];
 
 //sprite pointer arithmetic unit
-assign newptr = address_out[20:1] + spr_fmode_ptradd;
+assign newptr = address_out[20:1] + {17'b0,spr_fmode_ptradd};
 
 //sprite pointer high word register bank (implemented using distributed ram)
 wire [20:16] sprpth_in;

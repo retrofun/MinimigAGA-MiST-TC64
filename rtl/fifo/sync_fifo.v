@@ -73,10 +73,10 @@ reg  [ DW-1:0] fifo_mem [0:FD-1];
 // FIFO write pointer
 always @ (posedge clk or posedge rst) begin
   if (rst)
-    fifo_wp <= #1 1'b0;
+    fifo_wp <= #1 0;
   else if (clk7_en) begin
     if (fifo_wr_en && !fifo_full)
-      fifo_wp <= #1 fifo_wp + 1'b1;
+      fifo_wp <= #1 fifo_wp + 1;
   end
 end
 
@@ -92,14 +92,14 @@ end
 // FIFO counter
 always @ (posedge clk or posedge rst) begin
   if (rst)
-    fifo_cnt <= #1 'd0;
+    fifo_cnt <= #1 0;
   // read & no write
   else if (clk7_en) begin
     if (fifo_rd_en && !fifo_wr_en && (fifo_cnt != 'd0))
-      fifo_cnt <= #1 fifo_cnt - 1'd1;
+      fifo_cnt <= #1 fifo_cnt - 1;
     // write & no read
     else if (fifo_wr_en && !fifo_rd_en && (fifo_cnt != FD))
-      fifo_cnt <= #1 fifo_cnt + 1'd1;
+      fifo_cnt <= #1 fifo_cnt + 1;
   end
 end
 
@@ -112,10 +112,10 @@ assign fifo_empty = (fifo_cnt == 'd0);
 // FIFO read pointer
 always @ (posedge clk or posedge rst) begin
   if (rst)
-    fifo_rp <= #1 1'b0;
+    fifo_rp <= #1 0;
   else if (clk7_en) begin
     if (fifo_rd_en && !fifo_empty)
-      fifo_rp <= #1 fifo_rp + 1'b1;
+      fifo_rp <= #1 fifo_rp + 1;
   end
 end
 

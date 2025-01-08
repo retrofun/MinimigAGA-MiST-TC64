@@ -13,6 +13,7 @@ module chipset_tb(
 
 /* verilator lint_off PINMISSING */
 
+wire csync_i;
 wire hsync_i;
 wire vsync_i;
 wire blank_i;
@@ -47,7 +48,7 @@ agnus_beamcounter beamcounter
 	.hsyncpol(),			// horizontal sync polarity
 	._vsync(vsync_i),				// vertical sync
 	.vsyncpol(),			// vertical sync polarity
-	._csync(),					// composite sync
+	._csync(csync_i),					// composite sync
 	.blank(blank_i),				// video blanking
 	.vbl(),					// vertical blanking
 	.vblend(),					// last line of vertical blanking
@@ -84,7 +85,7 @@ amber scandoubler
 	.red_in(8'h00),         // red componenent video in
 	.green_in(8'h00),       // green component video in
 	.blue_in(8'h00),        // blue component video in
-	._csync_in(1'b0),      // composite sync in
+	._csync_in(csync_i),      // composite sync in
 	._hsync_in(hsync_i),      // horizontal synchronisation in
 	._vsync_in(vsync_i),      // vertical synchronisation in
 	.blank_in(blank_i),
