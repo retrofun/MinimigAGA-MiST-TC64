@@ -486,6 +486,7 @@ assign reset = sys_reset | ~_cpu_reset_in; // both tg68k and minimig_syscontrol 
 assign vblank_out = vbl_int;
 
 wire long_frame;
+wire track_vsync;
 
 //--------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------
@@ -824,14 +825,20 @@ amber AMBER1
 (		
 	.clk(clk),
 	.dblscan(_15khz && !varbeamen),
-  .varbeamen(varbeamen),
+	.varbeamen(varbeamen),
 	.lr_filter(lr_filter),
 	.hr_filter(hr_filter),
 	.scanline(scanline),
-  .dither(dither),
+	.dither(dither),
 	.htotal(htotal),
 	.hires(hires),
-	.long_frame(long_frame),
+`ifdef MINIMIG_USE_HDMI
+	.long_frame(long_frame),	// AMR - keep blank aligned with VSync for scandoubled DVI / HDMI output in lace mode.
+	.track_vsync(track_vsync),	// GS - shift VSync instead for scandoubled lace mode.
+`else
+	.long_frame(1'b0),
+	.track_vsync(1'b0),
+`endif
 	.osd_blank(osd_blank),
 	.osd_pixel(osd_pixel),
 	.red_in(red_i),
@@ -1299,7 +1306,8 @@ minimig_control_board myctrlboard (
   .vol5(aux2_vol),
   .sermidi(ser_midi),
   .drivesound_fdd(drivesound_fdd),
-  .drivesound_hdd(drivesound_hdd)  
+  .drivesound_hdd(drivesound_hdd),
+  .track_vsync(track_vsync)
 );
 
 `else
@@ -1313,6 +1321,7 @@ assign aud_overflow=1'b0;
 assign drivesound_fdd=1'b0;
 assign drivesound_hdd=1'b0;
 assign swap_channels=1'b0;
+assign track_vsync=1'b0;
 
 `endif
 

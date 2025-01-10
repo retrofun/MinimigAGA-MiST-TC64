@@ -66,6 +66,7 @@ module amber
   input  wire [  9-1:0] htotal,         // video line length
   input  wire           hires,          // display is in hires mode (from bplcon0)
   input  wire           long_frame,     // for interlaced mode
+  input  wire           track_vsync,    // for interlaced mode
   // osd
   input  wire           osd_blank,      // OSD overlay enable (blank normal video)
   input  wire           osd_pixel,      // OSD pixel(video) data
@@ -83,11 +84,11 @@ module amber
   output reg  [  8-1:0] blue_out=0,     // blue component video out
   output reg            _hsync_out=0,   // horizontal synchronisation out
   output reg            _vsync_out=0,   // vertical synchronisation out
-  output reg				_csync_out=0,
+  output reg            _csync_out=0,
   output reg            blank_out=0,
-  output wire            selcsync,
-  output wire				osd_blank_out,
-  output wire				osd_pixel_out
+  output wire           selcsync,
+  output wire           osd_blank_out,
+  output wire           osd_pixel_out
 );
 
 
@@ -416,9 +417,9 @@ wire           bm_osd_blank;
 wire           bm_osd_pixel;
 
 assign selcsync     = dblscan ? 1'b0 : varbeamen ? 1'b0 : 1'b1;
-assign bm_blank     = dblscan ? ( long_frame ? sd_bbuf_o : sd_lbuf_o_d[30] ) : blank_in;
+assign bm_blank     = dblscan ? ( (long_frame & ~track_vsync) ? sd_bbuf_o : sd_lbuf_o_d[30] ) : blank_in;
 assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : _hsync_in;
-assign bm_vsync     = dblscan ? _vsync_sd_d     : _vsync_in;
+assign bm_vsync     = (dblscan & track_vsync) ? _vsync_sd_d     : _vsync_in;
 //assign bm_hsync     = dblscan ? sd_lbuf_o_d[29] : varbeamen ? _hsync_in : ns_csync;
 //assign bm_vsync     = dblscan ? _vsync_in       : varbeamen ? _vsync_in : 1'b1;
 assign bm_r         = dblscan ? sl_r            : varbeamen ? red_in    : ns_r;

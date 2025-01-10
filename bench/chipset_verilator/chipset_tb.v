@@ -66,7 +66,6 @@ minimig mm
 	.cpudata_in(cpu_data_in),
 	._cpu_ipl(),
 	.fast_rd(1'b0),
-	.fast_rd_ena(),
 	._cpu_as(cpu_as),
 	._cpu_uds(cpu_uds),
 	._cpu_lds(cpu_lds),
