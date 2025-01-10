@@ -42,7 +42,6 @@ module gayle
 	input	[15:0] data_in,
 	output	[15:0] data_out,
 	input	rd,
-	output  fast_rd_ena,
 	input	hwr,
 	input	lwr,
 	input	sel_ide,			// $DAxxxx
@@ -216,7 +215,6 @@ ide ide (
 	.data_out(ide_out),
 	.data_oe(),
 	.rd(rd),
-	.fast_rd_ena(fast_rd_ena),
 	.hwr(hwr),
 	.lwr(lwr),
 	.intreq(intreq),
