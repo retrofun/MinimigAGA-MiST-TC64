@@ -14,9 +14,7 @@ module ide_fifo
 	output        full,            // fifo is full
 	output        empty,           // fifo is empty
 	output        last_out,        // the last word of a sector is being read
-	output        last_in,         // the last word of a sector is being written
-	input         underflow,
-	output        fast_rd_ena      // Data is available for the CPU to read - FIXME - massive hack alert.
+	output        last_in          // the last word of a sector is being written
 );
 
 // local signals and registers
@@ -72,10 +70,6 @@ always @(posedge clk)
 		empty_wr <= empty_rd;
 
 assign empty = empty_rd | empty_wr;
-
-// Allow the CPU to read the FIFO only when there's data available, or when the sector buffer has underflowed (needed for IDEFix97 startup).
-
-assign fast_rd_ena = full | underflow;
 
 // at least 512 bytes are in FIFO 
 // this signal is activated when 512th byte is written to the empty fifo

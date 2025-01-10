@@ -182,7 +182,6 @@ wire [  4-1:0] tg68_CACR_out;
 wire [ 32-1:0] tg68_VBR_out;
 wire           tg68_ovr;
 wire           tg68_fast_rd;
-wire           tg68_fast_rd_ena;
 
 // minimig
 wire           led;
@@ -459,7 +458,6 @@ TG68K #(.havertg(havertg ? "true" : "false"),
   .data_write   (tg68_dat_out     ),
   .data_write2  (tg68_dat_out2    ),
   .fast_rd      (tg68_fast_rd     ),
-  .fast_rd_ena  (tg68_fast_rd_ena ),
   .as           (tg68_as          ),
   .uds          (tg68_uds         ),
   .lds          (tg68_lds         ),
@@ -666,7 +664,6 @@ minimig minimig
 	.cpudata_in   (tg68_dat_out     ), // M68K data in
 	._cpu_ipl     (tg68_IPL         ), // M68K interrupt request
 	.fast_rd      (tg68_fast_rd     ), // Fast read for Gayle IDE cycles
-	.fast_rd_ena  (tg68_fast_rd_ena ),
 	._cpu_as      (tg68_as          ), // M68K address strobe
 	._cpu_uds     (tg68_uds         ), // M68K upper data strobe
 	._cpu_lds     (tg68_lds         ), // M68K lower data strobe
