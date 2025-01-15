@@ -1210,15 +1210,18 @@ i2s #(.AUDIO_DW(24)) i2s (
 );
 `ifdef MINIMIG_I2S_AUDIO_HDMI
 assign HDMI_MCLK = 0;
-reg bck, lrck, sdata;
-assign HDMI_BCK = bck;
-assign HDMI_LRCK = lrck;
-assign HDMI_SDATA = sdata;
-always @(posedge clk_114) begin
-	bck <= I2S_BCK;
-	lrck <= I2S_LRCK;
-	sdata <= I2S_DATA;
-end
+i2s i2s_hdmi (
+	.reset(1'b0),
+	.clk(clk_114),
+	.clk_rate(clock_ntsc ? 32'd114_545_440 : 32'd113_500_640),
+
+	.sclk(HDMI_BCK),
+	.lrclk(HDMI_LRCK),
+	.sdata(HDMI_SDATA),
+
+	.left_chan(ldata[23:8]),
+	.right_chan(rdata[23:8])
+);
 `endif
 `endif
 
