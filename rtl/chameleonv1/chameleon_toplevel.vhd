@@ -132,8 +132,8 @@ architecture rtl of chameleon_toplevel is
 	signal external_rxd : std_logic;
 
 -- Sound
-	signal audio_l : std_logic_vector(15 downto 0);
-	signal audio_r : std_logic_vector(15 downto 0);
+	signal audio_l : std_logic_vector(23 downto 0);
+	signal audio_r : std_logic_vector(23 downto 0);
 
 -- IO
 	signal ena_1mhz : std_logic;
@@ -217,6 +217,7 @@ architecture rtl of chameleon_toplevel is
 	  havespirtc : integer := 0;
 	  haveiec : integer := 0;
 	  havereconfig : integer := 0;
+	  haveaudio : integer := 0;
 	  vga_width : integer := 5
 	);
 	PORT
@@ -249,8 +250,8 @@ architecture rtl of chameleon_toplevel is
 		SDRAM_BA		:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
 		SDRAM_CLK		:	 OUT STD_LOGIC;
 		SDRAM_CKE		:	 OUT STD_LOGIC;
-		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
+		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(23 downto 0);
+		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(23 downto 0);
 		PS2_DAT_I		:	 IN STD_LOGIC;
 		PS2_CLK_I		:	 IN STD_LOGIC;
 		PS2_MDAT_I		:	 IN STD_LOGIC;
@@ -522,11 +523,11 @@ audio_sd : COMPONENT hybrid_pwm_sd
 	PORT map
 	(
 		clk => clk_114,
-		d_l(15) => not audio_l(15),
-		d_l(14 downto 0) => audio_l(14 downto 0),
+		d_l(15) => not audio_l(23),
+		d_l(14 downto 0) => audio_l(22 downto 16),
 		q_l => sigmaL,
-		d_r(15) => not audio_r(15),
-		d_r(14 downto 0) => audio_r(14 downto 0),
+		d_r(15) => not audio_r(23),
+		d_r(14 downto 0) => audio_r(22 downto 16),
 		q_r => sigmaR
 	);
 
