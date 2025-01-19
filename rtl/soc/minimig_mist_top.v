@@ -1013,10 +1013,14 @@ wire           dithered_hs;
 wire           dithered_de;
 
 assign vga_window = 1'b1;
-video_vga_dither #(.outbits(VGA_WIDTH), .flickerreduce("false")) dither
+video_vga_dither #(.outbits(VGA_WIDTH), .flickerreduce("true")) dither
 (
 	.clk(clk_vid),
+`ifdef MINIMIG_TOPLEVEL_DITHER
+	.ena(1'b1),
+`else
 	.ena(rtg_ena),
+`endif
 	.pixel(mixer_pixel),
 	.vidEna(vga_window),
 	.iSelcsync(force_csync),
@@ -1031,7 +1035,7 @@ video_vga_dither #(.outbits(VGA_WIDTH), .flickerreduce("false")) dither
 	.oRed(dithered_red),
 	.oGreen(dithered_green),
 	.oBlue(dithered_blue)
-	);
+);
 
 always @(posedge clk_vid) begin
 	VGA_VS <= dithered_vs ^ (vsyncpol & !force_csync);
