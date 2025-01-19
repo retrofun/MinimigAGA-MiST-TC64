@@ -89,7 +89,7 @@ const char *supporters[]=
 	"Alan Galloway",
 	"Ramon Martinez Palomares",
 	"John Clements",
-	
+	"Timo Karki",
 
 	"+ all other contributors.",
 	"Thanks also to Espen Skog,",

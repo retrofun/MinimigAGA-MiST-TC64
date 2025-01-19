@@ -381,27 +381,6 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 	lba=chs2lba(cylinder, head, sector, unit);
 	DEBUG3(multiple ? "ReadM %ld, %d" : "Read  %ld, %d",lba,sector_count);
 
-	/* Advance CHS values */
-	blk=sector_count;
-	while(--blk)
-	{
-		if (sector == hdf[unit].sectors)
-		{
-			sector = 1;
-			head++;
-			if (head == hdf[unit].heads)
-			{
-				head = 0;
-				cylinder++;
-			}
-		}
-		else
-			sector++;
-	}
-
-	/* Update task file with CHS address */
-	WriteTaskFile(0, tfr[2], sector, cylinder, (cylinder >> 8), (tfr[6] & 0xF0) | head);
-
 	while (sector_count)
 	{
 		block_count = multiple ? sector_count : 1;
@@ -410,6 +389,29 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 
 		WriteStatus(IDE_STATUS_RDY); // pio in (class 1) command type
 		while (!(GetFPGAStatus() & CMD_IDECMD)); // wait for empty sector buffer
+
+		/* Advance CHS values */
+		blk=block_count;
+		while(--blk)
+		{
+			if (sector == hdf[unit].sectors)
+			{
+				sector = 1;
+				head++;
+				if (head == hdf[unit].heads)
+				{
+					head = 0;
+					cylinder++;
+				}
+			}
+			else
+				sector++;
+		}
+
+	    /* Update task file with CHS address */
+	    WriteTaskFile(0, tfr[2], sector, cylinder, (cylinder >> 8), (tfr[6] & 0xF0) | head);
+
+	    WriteStatus(IDE_STATUS_IRQ);
 
 		switch(hdf[unit].type)
 		{
@@ -504,6 +506,7 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 	if(cylinder!=lastcyl)
 		drivesounds_queueevent(DRIVESOUND_HDDSTEP);
 	lastcyl=cylinder;
+    WriteStatus(IDE_STATUS_END);
 }
 
 
