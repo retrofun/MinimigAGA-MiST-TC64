@@ -28,6 +28,7 @@ set sdram_inputs  [get_ports {DRAM_DQ[*]}]
 
 # clock groups
 
+set_clock_groups -asynchronous -group [get_clocks {spiclk}] -group [get_clocks {virtual_top|amiga_clk|amiga_clk_i|altpll_component|auto_generated|pll1|clk[1]}]
 
 
 # clock uncertainty
@@ -65,7 +66,8 @@ set_output_delay -clock $clk_114 .5 [get_ports {altera_reserved_tdo}]
 
 # false paths
 
-set_false_path -from {minimig_virtual_top:virtual_top|cfide:mycfide|sck} -to {ARDUINO_IO[13]}
+set_false_path -to {ARDUINO_IO[*]}
+set_false_path -from SW[*]
 
 # multicycle paths
 

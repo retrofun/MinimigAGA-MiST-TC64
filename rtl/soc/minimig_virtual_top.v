@@ -284,12 +284,6 @@ wire [7:0] rtg_r;	// RTG video data
 wire [7:0] rtg_g;
 wire [7:0] rtg_b;
 
-reg [2:0] vga_strobe_ctr;
-wire vga_strobe;
-assign vga_strobe = vga_strobe_ctr==3'b000 ? 1'b1 : 1'b0;
-
-assign rtg_blank = rtg_vblank | hblank_amiga;
-
 wire rtg_pixel;
 
 rtg_video rtg (
@@ -861,12 +855,19 @@ wire           dithered_vs;
 wire           dithered_hs;
 wire           dithered_de;
 
+reg [2:0] vga_strobe_ctr;
+always @(posedge CLK_114)
+	vga_strobe_ctr<=_15khz ? {vga_strobe_ctr[2:1],1'b0}+3'b010 : vga_strobe_ctr+3'b001;
+
+wire vga_strobe;
+assign vga_strobe = ~(|vga_strobe_ctr);
+
 wire vga_window = 1'b1;
 video_vga_dither #(.outbits(vga_width), .flickerreduce("true")) dither
 (
 	.clk(CLK_114),
-	.ena(rtg_ena),
-	.pixel(rtg_pixel),
+	.ena(1'b1),
+	.pixel(rtg_ena ? rtg_pixel : vga_strobe),
 	.vidEna(vga_window),
 	.iSelcsync(1'b0), // selcsync),
 	.iCsync(VGA_CS_INT),
