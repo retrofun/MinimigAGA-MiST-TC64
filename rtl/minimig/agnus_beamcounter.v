@@ -456,7 +456,7 @@ always @(posedge clk)//sync
   end
 
 //composite sync
-assign _csync = (_hsync ^ hsynctrue) & (_vsync ^ vsynctrue) | vser; //composite sync with serration pulses
+assign _csync = (_hsync & _vsync) | vser; //composite sync with serration pulses
 
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
