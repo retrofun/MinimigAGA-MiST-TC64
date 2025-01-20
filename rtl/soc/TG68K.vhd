@@ -136,6 +136,8 @@ SIGNAL datatg68         : std_logic_vector(15 downto 0);
 SIGNAL w_datatg68       : std_logic_vector(15 downto 0);
 SIGNAL ramcs            : std_logic;
 
+signal ena_32bit        : std_logic;
+
 SIGNAL z2ram_ena        : std_logic;
 SIGNAL z3ram_ena        : std_logic;
 SIGNAL z3ram2_ena        : std_logic;
@@ -230,6 +232,8 @@ sel_eth<='0';
 			z3ram_ena <= ziiiram_active;
 			z3ram2_ena <= ziiiram2_active;
 			z3ram3_ena <= ziiiram3_active;
+			
+			ena_32bit <= cpu(1) and (ziiiram_active or ziiiram2_active or ziiiram3_active); -- Use 32-bit addressing when Zorro III RAM is present, and CPU is 68020
 
 			sel_akiko_d<=sel_akiko;
 			sel_undecoded_d<=sel_32 and not sel_ram;
@@ -381,9 +385,8 @@ SINGLERAM_ADDR: if dualsdram=false generate
 end generate;
 
 
-  
-  -- 32bit address space for 68020, limit address space to 24bit for 68000/68010
-  cpuaddr <= addrtg68 WHEN cpu(1) = '1' ELSE X"00" & addrtg68(23 downto 0);
+  -- 32bit address space for 68020, limit address space to 24bit for 68000/68010, or when ZIII RAM is disabled.
+  cpuaddr <= addrtg68 WHEN ena_32bit = '1' ELSE X"00" & addrtg68(23 downto 0);
 
 pf68K_Kernel_inst: entity work.TG68KdotC_Kernel
   generic map (
