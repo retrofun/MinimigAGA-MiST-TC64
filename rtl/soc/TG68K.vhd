@@ -509,8 +509,7 @@ begin
 --	clkena <= '1' WHEN clkena_pre='1' or (slower(0)='0' and
 	clkena <= '1' WHEN slower(0)='0' and
 					   ((clkena_in='1' and ((ena7RDreg='1' AND clkena_e='1') OR (ena7WRreg='1' AND clkena_f='1') or fast_rd='1')) OR
-					   cpu_internal='1' or ramready='1' OR sel_undecoded_d='1' OR akiko_ack='1')
---					   (ramready='1' and block_turbo='0')))
+					   cpu_internal='1' or sel_undecoded_d='1' OR akiko_ack='1' or (ramready='1' and block_turbo='0'))
 				  ELSE '0';
 
 	-- AMR - attempt to imitate A1200 speed more closely on chipram fetches:
