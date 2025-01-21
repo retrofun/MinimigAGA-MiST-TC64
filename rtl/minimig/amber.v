@@ -194,7 +194,7 @@ always @ (posedge clk) begin
   end;
 end
 
-wire sd_lbuf_rd_reset = hss || (sd_lbuf_rd == {htotal[8:1],2'b11});
+wire sd_lbuf_rd_reset = hss || (sd_lbuf_rd == {1'b0,htotal[8:1],2'b11});
 // scandoubler line buffer read pointer
 always @ (posedge clk) begin
   if (!dblscan || sd_lbuf_rd_reset) // reset at horizontal sync start and end of scandoubled line
