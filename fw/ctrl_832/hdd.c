@@ -456,6 +456,7 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 						{
 							HardFileSeek(&hdf[unit], lba + hdf[unit].offset);
 							FileReadEx(&hdf[unit].file, sector_buffer, 1);
+							EnableFpga();
 							SPI(CMD_IDE_DATA_WR); // write data command
 							SPI(0x00); SPI(0x00); SPI(0x00); SPI(0x00); SPI(0x00);
 							for (i = 0; i < 512; i++)
@@ -486,6 +487,7 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 				while(blk)
 				{
 					MMC_Read(lba+hdf[unit].offset,sector_buffer);
+					EnableFpga();
 					SPI(CMD_IDE_DATA_WR); // write data command
 					SPI(0x00); SPI(0x00); SPI(0x00); SPI(0x00); SPI(0x00);
 					for (i = 0; i < 512; i++)
@@ -506,7 +508,8 @@ void ATA_ReadSectors(unsigned char* tfr, int sector, int cylinder, int head, int
 	if(cylinder!=lastcyl)
 		drivesounds_queueevent(DRIVESOUND_HDDSTEP);
 	lastcyl=cylinder;
-    WriteStatus(IDE_STATUS_END);
+	if(multiple)
+	    WriteStatus(IDE_STATUS_END);
 }
 
 
