@@ -163,6 +163,7 @@ signal sel_akiko_d      : std_logic;
 signal sel_audio        : std_logic;
 signal sel_gayle_ide    : std_logic;
 
+signal cpu_mode         : std_logic_vector(1 downto 0);
 SIGNAL cpu_internal     : std_logic;
 SIGNAL cpu_fetch        : std_logic;
 SIGNAL cpu_read         : std_logic;
@@ -400,8 +401,10 @@ SINGLERAM_ADDR: if dualsdram=false generate
 end generate;
 
 
-  -- 32bit address space for 68020, limit address space to 24bit for 68000/68010, or when ZIII RAM is disabled.
-  cpuaddr <= addrtg68 WHEN ena_32bit = '1' ELSE X"00" & addrtg68(23 downto 0);
+  -- 32bit address space for 68020, limit address space to 24bit for 68000/68010/68EC020.
+  cpuaddr <= addrtg68 WHEN cpu="11" ELSE X"00" & addrtg68(23 downto 0);
+
+  cpu_mode <= cpu(1) & (cpu(1) or cpu(0));
 
 pf68K_Kernel_inst: entity work.TG68KdotC_Kernel
   generic map (
@@ -420,7 +423,7 @@ pf68K_Kernel_inst: entity work.TG68KdotC_Kernel
     data_in         => datatg68,      -- : in std_logic_vector(15 downto 0);
     IPL             => cpuIPL,        -- : in std_logic_vector(2 downto 0):="111";
     IPL_autovector  => '1',           -- : in std_logic:='0';
-    CPU             => cpu,
+    CPU             => cpu_mode,
     regin_out       => open,          -- : out std_logic_vector(31 downto 0);
     addr_out        => addrtg68,      -- : buffer std_logic_vector(31 downto 0);
     data_write      => w_datatg68,    -- : out std_logic_vector(15 downto 0);

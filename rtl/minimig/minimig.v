@@ -1243,7 +1243,7 @@ minimig_autoconfig#(.TOCCATA_SND(MMTOC),.CONTROL_BOARD(MMCB)) autoconfig
 	.lwr(cpu_lwr),
 	.sel(sel_autoconfig),
 	.fastram_config(memory_config[5:4]),
-	.m68020(cpu_config[1]),
+	.m68020(&cpu_config[1:0]),
 	.ram_64meg(ram_64meg),
 	.slowram_config(memory_config[3:2]),
 	.board_configured(board_configured_i),
