@@ -572,6 +572,7 @@ agnus AGNUS1
 	.blank(blank),
 	.vblank_out(),
 	.long_frame(long_frame),
+	.track_vsync(track_vsync),
 	.sol(sol),
 	.sof(sof),
   .vbl_int(vbl_int),

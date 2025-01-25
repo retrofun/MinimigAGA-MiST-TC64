@@ -76,6 +76,7 @@ module agnus
   output  _csync,            // composite sync
   output  blank,            // video blanking
   output  long_frame,      // for interlacing
+  input   track_vsync,
   output  sol,            // start of video line (active during last pixel of previous line)
   output  sof,            // start of video frame (active during last pixel of previous frame)
   output  vbl_int,          // vertical blanking interrupt request for Paula
@@ -494,6 +495,7 @@ agnus_beamcounter  bc1
   .rtg_ena(rtg_ena),
   .rtg_linecompare(rtg_linecompare),
   .hblank_out(hblank_out),
+  .track_vsync(track_vsync),
   .long_frame(long_frame)
 );
 
