@@ -1046,6 +1046,7 @@ minimig_sram_bridge RAM1
 	.ramdata_in(ramdata_in)	
 );
 
+`ifdef MINIMIG_HRTMON_CART
 cart CART1
 (
   .clk            (clk            ),
@@ -1071,6 +1072,12 @@ cart CART1
 //  .aron           (aron           ),
   .cpuhlt         (cpuhlt         )
 );
+`else
+	assign sel_cart = 1'b0;
+	assign cart_data_out = 16'h0000;
+	assign int7 = 1'b0;
+	assign ovr = 1'b0;
+`endif
 
 //level 7 interrupt for CPU
 assign _cpu_ipl = int7 ? 3'b000 : _iplx;	//m68k interrupt request

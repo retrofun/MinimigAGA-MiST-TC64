@@ -77,6 +77,7 @@
 #define PLATFORM_SPIRTC 2
 #define PLATFORM_RECONFIG 3
 #define PLATFORM_IECSERIAL 4
+#define PLATFORM_CART 5
 
 // On write:
 //   Bit 0 -> Scandoubler enable

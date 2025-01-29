@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.minimig_virtual_pkg.all;
+
 -- -----------------------------------------------------------------------
 entity neptuno_top is
 	port
@@ -28,9 +31,9 @@ entity neptuno_top is
 		SIGMA_R                     : OUT STD_LOGIC;
 		SIGMA_L                     : OUT STD_LOGIC;
 				-- I2S audio		
-		I2S_BCLK				: out   std_logic								:= '0';
-		I2S_LRCLK			: out   std_logic								:= '0';
-		I2S_DATA				: out   std_logic								:= '0';		
+		I2S_BCLK    : out std_logic  := '0';
+		I2S_LRCLK   : out std_logic  := '0';
+		I2S_DATA    : out std_logic  := '0';		
       
 		-- JOYSTICK 
 		JOY_CLK				: out   std_logic;
@@ -117,8 +120,8 @@ architecture RTL of neptuno_top is
 	signal rs232_txd : std_logic;
 
 
-	signal audio_l : std_logic_vector(15 downto 0);
-	signal audio_r : std_logic_vector(15 downto 0);
+	signal audio_l : std_logic_vector(23 downto 0);
+	signal audio_r : std_logic_vector(23 downto 0);
 	
 -- IO
 
@@ -129,74 +132,6 @@ architecture RTL of neptuno_top is
 
 -- LED
 	signal TMPLED : std_logic;
-	
-	COMPONENT minimig_virtual_top
-	generic
-	( debug : boolean := false;
-		havertg : boolean := true;
-		haveaudio : boolean := true;
-		havec2p : boolean := true;
-		ram_64meg : boolean := false;
-		haveiec : boolean := false;
-		havereconfig : boolean := false;
-		vga_width : integer := 6
-	);
-	PORT
-	(
-		CLK_IN		:	 IN STD_LOGIC;
-		CLK_28		:	 OUT STD_LOGIC;
-		CLK_114		:	 OUT STD_LOGIC;
-		RESET_N     :   IN STD_LOGIC;
-		LED_POWER	:	 OUT STD_LOGIC;
-		LED_DISK    :   OUT STD_LOGIC;
-		MENU_BUTTON :   IN STD_LOGIC;
-		CTRL_TX		:	 OUT STD_LOGIC;
-		CTRL_RX		:	 IN STD_LOGIC;
-		AMIGA_TX		:	 OUT STD_LOGIC;
-		AMIGA_RX		:	 IN STD_LOGIC;
-		VGA_HS		:	 OUT STD_LOGIC;
-		VGA_VS		:	 OUT STD_LOGIC;
-		VGA_R		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-		VGA_G		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-		VGA_B		:	 OUT STD_LOGIC_VECTOR(5 DOWNTO 0);
-		SDRAM_DQ		:	 INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-		SDRAM_A		:	 OUT STD_LOGIC_VECTOR(12 DOWNTO 0);
-		SDRAM_DQML		:	 OUT STD_LOGIC;
-		SDRAM_DQMH		:	 OUT STD_LOGIC;
-		SDRAM_nWE		:	 OUT STD_LOGIC;
-		SDRAM_nCAS		:	 OUT STD_LOGIC;
-		SDRAM_nRAS		:	 OUT STD_LOGIC;
-		SDRAM_nCS		:	 OUT STD_LOGIC;
-		SDRAM_BA		:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-		SDRAM_CLK		:	 OUT STD_LOGIC;
-		SDRAM_CKE		:	 OUT STD_LOGIC;
-		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		PS2_DAT_I		:	 INOUT STD_LOGIC;
-		PS2_CLK_I		:	 INOUT STD_LOGIC;
-		PS2_MDAT_I	:	 INOUT STD_LOGIC;
-		PS2_MCLK_I		:	 INOUT STD_LOGIC;
-		PS2_DAT_O		:	 INOUT STD_LOGIC;
-		PS2_CLK_O		:	 INOUT STD_LOGIC;
-		PS2_MDAT_O		:	 INOUT STD_LOGIC;
-		PS2_MCLK_O		:	 INOUT STD_LOGIC;
-		AMIGA_RESET_N : IN STD_LOGIC;
-		AMIGA_KEY	: IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-		AMIGA_KEY_STB : IN STD_LOGIC;
-		C64_KEYS	:	IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-		JOYA		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYB		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYC		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYD		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		SD_MISO	:	 IN STD_LOGIC;
-		SD_MOSI	:	 OUT STD_LOGIC;
-		SD_CLK	:	 OUT STD_LOGIC;
-		SD_CS		:	 OUT STD_LOGIC;
-		SD_ACK	:	 IN STD_LOGIC;
-		RECONFIG	:	 OUT STD_LOGIC;
-		IECSERIAL:	 OUT STD_LOGIC			
-	);
-	END COMPONENT;
 
 signal amiga_rxd : std_logic;
 signal amiga_txd : std_logic;
@@ -264,13 +199,14 @@ ps2_keyboard_clk <= '0' when ps2_keyboard_clk_out='0' else 'Z';
 virtual_top : COMPONENT minimig_virtual_top
 generic map
 	(
-		debug => false,
-		havertg => true,
-		haveaudio => true,
-		havec2p => true,
-		ram_64meg => false,
-		haveiec => false,
-		havereconfig => false,
+		debug => 0,
+		havertg => 1,
+		haveaudio => 1,
+		havec2p => 1,
+		havecart => 1,
+		ram_64meg => 0,
+		haveiec => 0,
+		havereconfig => 0,
 		vga_width => 6
 	)
 PORT map
@@ -378,14 +314,14 @@ port map(
 	dac_LRCK  => I2S_LRCLK,
 	dac_SCLK  => I2S_BCLK,
 	dac_SDIN  => I2S_DATA,
-	L_data    => signed(AUDIO_L),
-	R_data    => signed(AUDIO_R)
+	L_data    => signed(AUDIO_L(23 downto 8)),
+	R_data    => signed(AUDIO_R(23 downto 8))
 );
 
 dac_l: entity work.dac_dsm2v  
 generic map
 	(
-	  nbits_g => 16
+	  nbits_g => 24
 	)
 port map
 (	
@@ -398,7 +334,7 @@ port map
 dac_r: entity work.dac_dsm2v  
 generic map
 	(
-	  nbits_g => 16
+	  nbits_g => 24
 	)
 port map
 (	

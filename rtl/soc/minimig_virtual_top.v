@@ -38,7 +38,8 @@ module minimig_virtual_top	#(
 	parameter havec2p = 1,
 	parameter havespirtc = 0,
 	parameter ram_64meg = 0,
-	parameter vga_width = 6
+	parameter vga_width = 6,
+	parameter havecart = 1
 )
 (
   // clock inputs
@@ -362,7 +363,7 @@ wire aud_ena_cpu;
 wire aud_clear;
 
 wire [22:0] aud_ramaddr;
-assign aud_ramaddr[15:0]=aud_addr;
+assign aud_ramaddr[15:0]=aud_addr[15:0];
 assign aud_ramaddr[22:16]=7'b1101111;  // 0x6f0000 in SDRAM, 0x040000 to host, 0xec0000 to Amiga
 
 reg [9:0] aud_ctr;
@@ -436,7 +437,8 @@ assign tg68_nrst_out=1'b1;
 
 TG68K #(.havertg(havertg ? "true" : "false"),
 			.haveaudio(haveaudio ? "true" : "false"),
-			.havec2p(havec2p ? "true" : "false")
+			.havec2p(havec2p ? "true" : "false"),
+			.havecart(havecart ? "true" : "false")
 		) tg68k (
   .clk          (CLK_114          ),
   .reset        (tg68_rst         ),
@@ -798,7 +800,8 @@ cfide #(
 	.spimux(spimux ? "true" : "false"),
 	.havespirtc(havespirtc ? "true" : "false"),
 	.haveiec(haveiec ? "true" : "false"),
-	.havereconfig(havereconfig ? "true" : "false")
+	.havereconfig(havereconfig ? "true" : "false"),
+	.havecart(havecart ? "true" : "false")
 ) mycfide ( 
 		.sysclk(CLK_114),
 		.n_reset(reset_out),

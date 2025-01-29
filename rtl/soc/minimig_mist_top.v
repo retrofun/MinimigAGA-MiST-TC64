@@ -373,7 +373,18 @@ localparam useprofiler="true";
 localparam useprofiler="false";
 `endif
 
-TG68K #(.dualsdram(dualsdram),.useprofiler(useprofiler),.haveaudio(auxaudio)) tg68k (
+`ifdef MINIMIG_HRTMON_CART
+localparam havecart="true";
+`else
+localparam havecart="false";
+`endif
+
+TG68K #(
+  .dualsdram(dualsdram),
+  .useprofiler(useprofiler),
+  .haveaudio(auxaudio),
+  .havecart(havecart)
+) tg68k (
   .clk          (clk_114          ),
   .reset        (tg68_rst         ),
   .clkena_in    (tg68_ena28       ),

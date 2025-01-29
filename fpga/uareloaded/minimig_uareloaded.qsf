@@ -42,7 +42,7 @@
 # ========================
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 16.1.2
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:53:30  APRIL 20, 2017"
-set_global_assignment -name LAST_QUARTUS_VERSION "21.1.0 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.1.0 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name SMART_RECOMPILE ON
@@ -374,4 +374,6 @@ set_global_assignment -name VHDL_FILE ../../rtl/rtg/VideoStream.vhd
 set_global_assignment -name VERILOG_FILE ../../rtl/sdram/dpram_inf_generic.v
 set_global_assignment -name VHDL_FILE ../../rtl/audio/AudioMix.vhd
 set_global_assignment -name VHDL_FILE ../../rtl/audio/audiofilter.vhd
+set_global_assignment -name VHDL_FILE ../../rtl/virtual/minimig_virtual_pkg.vhd
+set_global_assignment -name VERILOG_FILE ../../rtl/rtg/rtg_video.v
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

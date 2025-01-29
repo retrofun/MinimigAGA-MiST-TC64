@@ -33,6 +33,7 @@ generic
 		havertg : boolean := true;
 		haveaudio : boolean := true;
 		havec2p : boolean := true;
+		havecart : boolean := true;
 		dualsdram : boolean := false;
 		useprofiler : boolean := false
 	);
@@ -176,8 +177,6 @@ signal akiko_req : std_logic;
 signal akiko_ack : std_logic;
 signal host_req_r : std_logic;
 
-SIGNAL NMI_addr         : std_logic_vector(31 downto 0);
-SIGNAL sel_nmi_vector_addr : std_logic;
 SIGNAL sel_nmi_vector   : std_logic;
 
 signal block_turbo : std_logic := '0';
@@ -200,20 +199,6 @@ BEGIN
 
 sel_eth<='0';
 
-	-- NMI
-	PROCESS(reset, clk,VBR_out) BEGIN
-		IF reset='0' THEN
-			NMI_addr <= X"0000007c";
-			sel_nmi_vector_addr <= '0';
-		ELSIF rising_edge(clk) THEN
-			NMI_addr <= VBR_out + X"0000007c";
-			sel_nmi_vector_addr <= '0';
-			IF (cpuaddr(31 downto 2) = NMI_addr(31 downto 2)) THEN
-				sel_nmi_vector_addr <= '1';
-			END IF;
-		END IF;
-	END PROCESS;
-
 	-- AMR just for convenience / clarity
 	cpu_fetch    <= '1' WHEN state = "00" else '0';
 	cpu_internal <= '1' WHEN state = "01" else '0';
@@ -221,8 +206,38 @@ sel_eth<='0';
 	cpu_write    <= '1' WHEN state = "11" else '0';
 	cpu_disablecache <= not CACR(0);
 
-	sel_nmi_vector <= '1' WHEN sel_nmi_vector_addr='1' AND cpu_read='1' ELSE '0';
+	-- NMI handling for HRTMon cartridge
+	
+	gen_nmi: if havecart=true generate
+		nmiblock : block
+			SIGNAL NMI_addr         : std_logic_vector(31 downto 0);
+			SIGNAL sel_nmi_vector_addr : std_logic;
+		begin
+			-- NMI
+			PROCESS(reset, clk,VBR_out) BEGIN
+				IF reset='0' THEN
+					NMI_addr <= X"0000007c";
+					sel_nmi_vector_addr <= '0';
+				ELSIF rising_edge(clk) THEN
+					NMI_addr <= VBR_out + X"0000007c";
+					sel_nmi_vector_addr <= '0';
+					IF (cpuaddr(31 downto 2) = NMI_addr(31 downto 2)) THEN
+						sel_nmi_vector_addr <= '1';
+					END IF;
+				END IF;
+			END PROCESS;
 
+			sel_nmi_vector <= '1' WHEN sel_nmi_vector_addr='1' AND cpu_read='1' ELSE '0';
+
+		end block;
+	end generate;
+
+	no_nmi: if havecart=false generate
+		sel_nmi_vector <= '0';
+	end generate;
+
+	--
+	
 	toram <= w_datatg68;
 	wrd <= wr;
 

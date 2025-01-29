@@ -1359,9 +1359,13 @@ void HandleUI(void)
             strncat(s, config.kickstart.name, sizeof(config.kickstart.name));
         OsdWrite(4, s, menusub == 3,0);
 
-		strcpy(s, "      HRTmon: ");
-		strcat(s, (config.memory&0x40) ? "enabled " : "disabled");
-		OsdWrite(5, s, menusub == 4,0);
+		if(PLATFORM&(1<<PLATFORM_CART)) {
+			strcpy(s, "      HRTmon: ");
+			strcat(s, (config.memory&0x40) ? "enabled " : "disabled");
+			OsdWrite(5, s, menusub == 4,0);
+		}
+		else
+			OsdWrite(5, "", 0,0);
 		OsdWrite(6, "", 0,0);
 
         OsdWrite(7, STD_BACK, menusub == 5,0);

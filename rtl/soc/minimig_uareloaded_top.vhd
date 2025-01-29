@@ -2,6 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
+use work.minimig_virtual_pkg.all;
+
 -- -----------------------------------------------------------------------
 
 entity uareloaded_top is
@@ -94,13 +97,13 @@ architecture RTL of uareloaded_top is
 
 	
 -- Video
-	signal vga_pixel : std_logic;
+--	signal vga_pixel : std_logic;
 	signal vga_red: std_logic_vector(7 downto 0);
 	signal vga_green: std_logic_vector(7 downto 0);
 	signal vga_blue: std_logic_vector(7 downto 0);
 	signal vga_window : std_logic;
-	signal vga_selcsync : std_logic;
-	signal vga_csync : std_logic;
+--	signal vga_selcsync : std_logic;
+--	signal vga_csync : std_logic;
 	signal vga_hsync : std_logic;
 	signal vga_vsync : std_logic;
 	signal vbl : std_logic;
@@ -126,8 +129,8 @@ architecture RTL of uareloaded_top is
 	signal rs232_txd : std_logic;
 
 
-	signal audio_l : std_logic_vector(15 downto 0);
-	signal audio_r : std_logic_vector(15 downto 0);
+	signal audio_l : std_logic_vector(23 downto 0);
+	signal audio_r : std_logic_vector(23 downto 0);
 	
 -- IO
 
@@ -135,77 +138,6 @@ architecture RTL of uareloaded_top is
 	signal joyb : std_logic_vector(6 downto 0);
 	signal joyc : std_logic_vector(6 downto 0);
 	signal joyd : std_logic_vector(6 downto 0);
-
-	
-	COMPONENT minimig_virtual_top
-	generic
-	( debug : boolean := false;
-		havertg : boolean := true;
-		haveaudio : boolean := true;
-		havec2p : boolean := true;
-		ram_64meg : boolean := false;
-		haveiec : boolean := false;
-		havereconfig : boolean := false
-	);
-	PORT
-	(
-		CLK_IN		:	 IN STD_LOGIC;
-		CLK_28		:	 OUT STD_LOGIC;
-		CLK_114		:	 OUT STD_LOGIC;
-		RESET_N     :   IN STD_LOGIC;
-		LED_POWER	:	 OUT STD_LOGIC;
-		LED_DISK    :   OUT STD_LOGIC;
-		MENU_BUTTON :   IN STD_LOGIC;
-		CTRL_TX		:	 OUT STD_LOGIC;
-		CTRL_RX		:	 IN STD_LOGIC;
-		AMIGA_TX		:	 OUT STD_LOGIC;
-		AMIGA_RX		:	 IN STD_LOGIC;
-		VGA_PIXEL   : OUT STD_LOGIC;
-		VGA_SELCS   : OUT STD_LOGIC;
-		VGA_CS		:	 OUT STD_LOGIC;
-		VGA_HS		:	 OUT STD_LOGIC;
-		VGA_VS		:	 OUT STD_LOGIC;
-		VGA_R		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-		VGA_G		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-		VGA_B		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-		SDRAM_DQ		:	 INOUT STD_LOGIC_VECTOR(15 DOWNTO 0);
-		SDRAM_A		:	 OUT STD_LOGIC_VECTOR(12 DOWNTO 0);
-		SDRAM_DQML		:	 OUT STD_LOGIC;
-		SDRAM_DQMH		:	 OUT STD_LOGIC;
-		SDRAM_nWE		:	 OUT STD_LOGIC;
-		SDRAM_nCAS		:	 OUT STD_LOGIC;
-		SDRAM_nRAS		:	 OUT STD_LOGIC;
-		SDRAM_nCS		:	 OUT STD_LOGIC;
-		SDRAM_BA		:	 OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-		SDRAM_CLK		:	 OUT STD_LOGIC;
-		SDRAM_CKE		:	 OUT STD_LOGIC;
-		AUDIO_L		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		AUDIO_R		:	 OUT STD_LOGIC_VECTOR(15 downto 0);
-		PS2_DAT_I		:	 INOUT STD_LOGIC;
-		PS2_CLK_I		:	 INOUT STD_LOGIC;
-		PS2_MDAT_I	:	 INOUT STD_LOGIC;
-		PS2_MCLK_I		:	 INOUT STD_LOGIC;
-		PS2_DAT_O		:	 INOUT STD_LOGIC;
-		PS2_CLK_O		:	 INOUT STD_LOGIC;
-		PS2_MDAT_O		:	 INOUT STD_LOGIC;
-		PS2_MCLK_O		:	 INOUT STD_LOGIC;
-		AMIGA_RESET_N : IN STD_LOGIC;
-		AMIGA_KEY	: IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-		AMIGA_KEY_STB : IN STD_LOGIC;
-		C64_KEYS	:	IN STD_LOGIC_VECTOR(63 DOWNTO 0);
-		JOYA		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYB		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYC		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		JOYD		:	 IN STD_LOGIC_VECTOR(6 DOWNTO 0);
-		SD_MISO	:	 IN STD_LOGIC;
-		SD_MOSI	:	 OUT STD_LOGIC;
-		SD_CLK	:	 OUT STD_LOGIC;
-		SD_CS		:	 OUT STD_LOGIC;
-		SD_ACK	:	 IN STD_LOGIC;
-		RECONFIG	:	 OUT STD_LOGIC;
-		IECSERIAL:	 OUT STD_LOGIC			
-	);
-	END COMPONENT;
 
 signal amiga_rxd : std_logic;
 signal amiga_txd : std_logic;
@@ -234,13 +166,15 @@ ps2_keyboard_clk_in<=ps2_keyboard_clk;
 virtual_top : COMPONENT minimig_virtual_top
 generic map
 	(
-		debug => false,
-		havertg => true,
-		haveaudio => true,
-		havec2p => true,
-		ram_64meg => false,
-		haveiec => false,
-		havereconfig => false		
+		debug => 0,
+		havertg => 1,
+		haveaudio => 1,
+		havec2p => 1,
+		havecart => 1,
+		ram_64meg => 0,
+		haveiec => 0,
+		havereconfig => 0,
+		vga_width => 8
 	)
 PORT map
 	(
@@ -254,9 +188,9 @@ PORT map
 		CTRL_RX => rs232_rxd,
 		AMIGA_TX => ESP_TX,
 		AMIGA_RX => ESP_RX,
-		VGA_PIXEL => vga_pixel,
-		VGA_SELCS => vga_selcsync,
-		VGA_CS => vga_csync,
+--		VGA_PIXEL => vga_pixel,
+--		VGA_SELCS => vga_selcsync,
+--		VGA_CS => vga_csync,
 		VGA_HS => vga_hsync,
 		VGA_VS => vga_vsync,
 		VGA_R	=> vga_red,
@@ -370,8 +304,8 @@ port map(
           dac_SCLK  => SCLK,
           dac_SDIN  => SDIN,
           dac_LRCK  => LRCLK,
-          L_data    => signed(AUDIO_L),
-          R_data    => signed(AUDIO_R)
+          L_data    => signed(AUDIO_L(23 downto 8)),
+          R_data    => signed(AUDIO_R(23 downto 8))
 );
 
 

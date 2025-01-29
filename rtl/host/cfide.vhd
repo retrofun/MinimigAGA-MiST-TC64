@@ -32,7 +32,8 @@ entity cfide is
 		spimux : in boolean := false;
 		havespirtc : in boolean := false;
 		haveiec : in boolean := false;
-		havereconfig : in boolean := false
+		havereconfig : in boolean := false;
+		havecart : in boolean := false
 	);
    port ( 
 		sysclk	: in std_logic;
@@ -140,6 +141,7 @@ signal rtc_select : std_logic;
 signal reconfigpresent : std_logic;
 signal spirtcpresent : std_logic;
 signal iecpresent : std_logic;
+signal cartpresent : std_logic;
 
 begin
 
@@ -155,8 +157,9 @@ q(15 downto 0) <=	IOdata WHEN rs232_select='1' or SPI_select='1' ELSE
 spirtcpresent <= '1' when havespirtc=true else '0';
 iecpresent <= '1' when haveiec=true else '0';
 reconfigpresent <= '1' when havereconfig=true else '0';
+cartpresent <= '1' when havecart=true else '0';
 
-platformdata <=  X"00" & "000" & iecpresent & reconfigpresent & spirtcpresent & "1" & menu_button;
+platformdata <=  X"00" & "00" & cartpresent & iecpresent & reconfigpresent & spirtcpresent & "1" & menu_button;
 IOdata <= sd_in;
 
 process(clk_28)
