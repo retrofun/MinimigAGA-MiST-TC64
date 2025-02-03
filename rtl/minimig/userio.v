@@ -221,7 +221,7 @@ always @ (posedge clk) begin
       else
         potcap[3] <= #1 _mright1 & _djoy2[5] & ~(potreg[15] & ~potreg[14]);
 
-      potcap[2] <= #1 joy2_pin5; // pin5
+      potcap[2] <= #1 _mthird1 & joy2_pin5; // pin5.
 
       if(joy1enable & cd32pad & ~joy1_pin5)
         potcap[1] <= #1 cd32pad1_reg[7];
