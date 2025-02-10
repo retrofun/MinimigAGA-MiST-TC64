@@ -90,7 +90,7 @@ id_ack<=req and id_sel;
 
 -- Cornerturn for Chunky to Planar
 
-ct_sel <= '1' when addr(7 downto 2)=X"3"&"10" else '0';	-- Cornerturn at 0xb80038
+ct_sel <= '1' when addr(10 downto 8)="000" and addr(5 downto 2)="1110" else '0';	-- Cornerturn at 0xb80038 with mirrors at 78, b8 and f8 
 
 c2p:
 if havec2p=true generate
