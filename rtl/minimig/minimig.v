@@ -431,7 +431,7 @@ wire	[1:0] lr_filter;		//lowres interpolation filter mode: bit 0 - horizontal, b
 wire	[1:0] hr_filter;		//hires interpolation filter mode: bit 0 - horizontal, bit 1 - vertical
 wire	[1:0] scanline;			//scanline effect configuration
 wire  [1:0] dither;   // video output dither
-wire	hires;					//hires signal from Denise for interpolation filter enable in Amber
+wire	[1:0] hires;			//hires signal from Denise for interpolation filter enable in Amber
 //wire	aron;					//Action Replay is enabled
 wire	cpu_speed;				//requests CPU to switch speed mode
 wire	turbo;					//CPU is working in turbo mode
@@ -818,7 +818,7 @@ denise DENISE1
   .a1k(chipset_config[2]),
   .ecs(|chipset_config[4:3]),
   .aga(chipset_config[4]),
-	.hires(hires)
+	.hires_filter(hires)
 );
 
 //instantiate Amber

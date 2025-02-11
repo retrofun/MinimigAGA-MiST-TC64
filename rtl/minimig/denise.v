@@ -48,7 +48,7 @@ module denise (
   input  wire           a1k,            // control EHB chipset feature
   input  wire           ecs,            // enables ECS chipset features
   input  wire           aga,            // enables AGA features
-  output wire           hires           // hires
+  output wire     [1:0] hires_filter    // hires - exported for scandoubler filter settings
 );
 
 
@@ -126,7 +126,7 @@ always @(posedge clk)
 
 // BPLCON0 register
 reg  [16-1:0] bplcon0;    // bplcon0 register
-//wire          hires;      // hires (640*200/640*400 interlace) mode
+wire          hires;      // hires (640*200/640*400 interlace) mode
 wire [ 4-1:0] bpu;        // bit planes used
 wire          ham;        // hold and modify mode
 wire          dpf;        // double playfield mode
@@ -492,6 +492,8 @@ assign t_blank = blank | ecs & ecsena & brdrblnk & (~window_del | ~display_ena);
 assign {red[7:0],green[7:0],blue[7:0]} = t_blank ? 24'h000000 : out_rgb;
 
 assign blank_out = t_blank;
+
+assign hires_filter = {shres,hires}; // AMR - scandoubler filter needs to know about super-hires as well as just hires, otherwise lowres filter is used!
 
 endmodule
 

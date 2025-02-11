@@ -64,7 +64,7 @@ module amber
   input  wire [  2-1:0] dither,         // dither enable (00 = off, 01 = temporal, 10 = random, 11 = temporal + random)
   // control
   input  wire [  9-1:0] htotal,         // video line length
-  input  wire           hires,          // display is in hires mode (from bplcon0)
+  input  wire     [1:0] hires,          // display is in hires or superhires mode (from bplcon0)
   input  wire           long_frame,     // for interlaced mode
   input  wire           track_vsync,    // for interlaced mode
   // osd
@@ -134,9 +134,12 @@ wire [  9-1:0] hi_b;                    // horizontal interpolation output
 reg  [ 11-1:0] sd_lbuf_wr=0;            // line buffer write pointer
 
 // horizontal interpolation enable
+// AMR - since the scandoubler only has hires resolution, force the filter to on
+// for super-hires mode.  Not ideal, but at least all pixels are then represented in the output,
+// instead of 50% of them being ignored entirely.
 always @ (posedge clk) begin
 `ifdef MINIMIG_VIDEO_FILTER
-  if (hss) hi_en <= #1 hires ? hr_filter[0] : lr_filter[0];
+  if (hss) hi_en <= #1 hires[1] | (hires[0] ? hr_filter[0] : lr_filter[0]);
 `else
   hi_en <= #1 1'b0;
 `endif
@@ -144,7 +147,7 @@ end
 
 // pixel data delayed by one hires pixel for horizontal interpolation
 always @ (posedge clk) begin
-  if (sd_lbuf_wr[0])  begin // sampled at 14MHz (hires clock rate)
+  if (sd_lbuf_wr[0] | hires[1])  begin // sampled at 14MHz (hires clock rate) or 28MHz for super-hires mode
     r_in_d <= red_in;
     g_in_d <= green_in;
     b_in_d <= blue_in;
@@ -246,7 +249,7 @@ wire [  8-1:0] vi_b;                    // vertical interpolation outputs
 //vertical interpolation enable
 always @ (posedge clk) begin
 `ifdef MINIMIG_VIDEO_FILTER
-  if (hss) vi_en <= #1 hires ? hr_filter[1] : lr_filter[1];
+  if (hss) vi_en <= #1 |hires ? hr_filter[1] : lr_filter[1];
 `else
   vi_en <= #1 1'b0;
 `endif
