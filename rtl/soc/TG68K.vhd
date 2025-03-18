@@ -86,7 +86,6 @@ port(
 	cpustate      : out     std_logic_vector(3 downto 0);
 --	chipset_ramsel: out     std_logic;
 	nResetOut     : buffer  std_logic;
-	skipFetch     : buffer  std_logic;
 	--    cpuDMA        : buffer  std_logic;
 	ramlds        : out     std_logic;
 	ramuds        : out     std_logic;
@@ -130,6 +129,7 @@ SIGNAL turbochip_d      : std_logic := '0';
 SIGNAL turbokick_d      : std_logic := '0';
 SIGNAL turboslow_d      : std_logic := '0';
 SIGNAL slower           : std_logic_vector(3 downto 0);
+signal skipfetch        : std_logic := '0';
 
 signal datatg68_selram  : std_logic;
 SIGNAL datatg68_c       : std_logic_vector(15 downto 0);
@@ -202,7 +202,7 @@ sel_eth<='0';
 
 	-- AMR just for convenience / clarity
 	cpu_fetch    <= '1' WHEN state = "00" else '0';
-	cpu_internal <= '1' WHEN state = "01" else '0';
+	cpu_internal <= '1' WHEN state = "01" or skipfetch='1' else '0';
 	cpu_read     <= '1' WHEN state = "10" else '0';
 	cpu_write    <= '1' WHEN state = "11" else '0';
 	cpu_disablecache <= not CACR(0);
@@ -326,7 +326,7 @@ end generate;
       OR sel_audio='1'
     ) ELSE '0';
 
-  ramcs <= NOT datatg68_selram or slower(0) or block_turbo or sel_nmi_vector; -- (NOT cpu_internal AND sel_ram_d AND NOT sel_nmi_vector) OR slower(0) or block_turbo;
+  ramcs <= NOT datatg68_selram or slower(0) or block_turbo or sel_nmi_vector or skipfetch; -- (NOT cpu_internal AND sel_ram_d AND NOT sel_nmi_vector) OR slower(0) or block_turbo;
 
   cpustate <= longword&ramcs&state(1 downto 0);
   ramlds <= lds_in;
@@ -594,7 +594,7 @@ begin
 	-- Block_turbo is only valid on the 4th cycle after clkena, but is only high when throttling is enabled, at which point
 	-- slower(0) is guaranteed to be high for more than 4 cycles.
 	-- When throttling chip-only cycles, block_turbo and sel_nmi_vector will prevent ram_cs going low, so their being late here shouldn't matter.
-	chipset_cycle <= '1' when clkena_in='1' and slower(0)='0' and (sel_ram='0' OR sel_nmi_vector='1' or block_turbo='1')
+	chipset_cycle <= '1' when cpu_internal='0' and clkena_in='1' and slower(0)='0' and (sel_ram='0' OR sel_nmi_vector='1' or block_turbo='1')
 		 and sel_gayle_ide='0' AND sel_akiko='0' and sel_undecoded_d='0' else '0';
 
 	PROCESS (clk) BEGIN
