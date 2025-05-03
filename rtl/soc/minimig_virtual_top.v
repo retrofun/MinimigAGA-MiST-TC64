@@ -206,8 +206,8 @@ wire           cs;
 wire [  8-1:0] red_amiga;
 wire [  8-1:0] green_amiga;
 wire [  8-1:0] blue_amiga;
-wire				hsyncpol;
-wire				vsyncpol;
+wire           hsyncpol;
+wire           vsyncpol;
 
 // sdram
 wire           reset_out;
@@ -218,15 +218,10 @@ wire [  2-1:0] sdram_ba;
 // mist
 wire           user_io_sdo;
 wire           minimig_sdo;
-wire [  16-1:0] joya;
-wire [  16-1:0] joyb;
-wire [  16-1:0] joyc;
-wire [  16-1:0] joyd;
-//wire [  8-1:0] kbd_mouse_data;
-//wire           kbd_mouse_strobe;
-//wire           kms_level;
-//wire [  2-1:0] kbd_mouse_type;
-//wire [  3-1:0] mouse_buttons;
+wire [ 16-1:0] joya;
+wire [ 16-1:0] joyb;
+wire [ 16-1:0] joyc;
+wire [ 16-1:0] joyd;
 
 // UART
 wire minimig_rxd;
@@ -439,61 +434,61 @@ TG68K #(.havertg(havertg ? "true" : "false"),
 			.haveaudio(haveaudio ? "true" : "false"),
 			.havec2p(havec2p ? "true" : "false"),
 			.havecart(havecart ? "true" : "false")
-		) tg68k (
-  .clk          (CLK_114          ),
-  .reset        (tg68_rst         ),
-  .clkena_in    (tg68_ena28       ),
-  .IPL          (tg68_IPL         ),
-  .dtack        (tg68_dtack       ),
-  .freeze       (FREEZE           ),
-  .vpa          (1'b1             ),
-  .ein          (1'b1             ),
-  .addr         (tg68_adr         ),
-  .data_read    (tg68_dat_in      ),
-  .data_read2   (tg68_dat_in2     ),
-  .data_write   (tg68_dat_out     ),
-  .data_write2  (tg68_dat_out2    ),
-  .fast_rd      (tg68_fast_rd     ),
-  .as           (tg68_as          ),
-  .uds          (tg68_uds         ),
-  .lds          (tg68_lds         ),
-  .uds2         (tg68_uds2        ),
-  .lds2         (tg68_lds2        ),
-  .rw           (tg68_rw          ),
-  .vma          (                 ),
-  .wrd          (                 ),
-  .ena7RDreg    (tg68_ena7RD      ),
-  .ena7WRreg    (tg68_ena7WR      ),
-  .fromram      (tg68_cout        ),
-  .toram        (tg68_cin         ),
-  .ramready     (tg68_cpuena      ),
-  .cpu          (cpu_config[1:0]  ),
-  .turbochipram (turbochipram     ),
-  .turbokick    (turbokick        ),
-  .slow_config  (slow_config      ),
-  .aga          (aga              ),
-  .cache_inhibit(cache_inhibit    ),
-  .cacheline_clr(cacheline_clr    ),
-  .ziiram_active(board_configured[0]),
-  .ziiiram_active(board_configured[1]),
-  .ziiiram2_active(board_configured[2]),
-  .ziiiram3_active(board_configured[3]),
+	) tg68k (
+	.clk          (CLK_114          ),
+	.reset        (tg68_rst         ),
+	.clkena_in    (tg68_ena28       ),
+	.IPL          (tg68_IPL         ),
+	.dtack        (tg68_dtack       ),
+	.freeze       (FREEZE           ),
+	.vpa          (1'b1             ),
+	.ein          (1'b1             ),
+	.addr         (tg68_adr         ),
+	.data_read    (tg68_dat_in      ),
+	.data_read2   (tg68_dat_in2     ),
+	.data_write   (tg68_dat_out     ),
+	.data_write2  (tg68_dat_out2    ),
+	.fast_rd      (tg68_fast_rd     ),
+	.as           (tg68_as          ),
+	.uds          (tg68_uds         ),
+	.lds          (tg68_lds         ),
+	.uds2         (tg68_uds2        ),
+	.lds2         (tg68_lds2        ),
+	.rw           (tg68_rw          ),
+	.vma          (                 ),
+	.wrd          (                 ),
+	.ena7RDreg    (tg68_ena7RD      ),
+	.ena7WRreg    (tg68_ena7WR      ),
+	.fromram      (tg68_cout        ),
+	.toram        (tg68_cin         ),
+	.ramready     (tg68_cpuena      ),
+	.cpu          (cpu_config[1:0]  ),
+	.turbochipram (turbochipram     ),
+	.turbokick    (turbokick        ),
+	.slow_config  (slow_config      ),
+	.aga          (aga              ),
+	.cache_inhibit(cache_inhibit    ),
+	.cacheline_clr(cacheline_clr    ),
+	.ziiram_active(board_configured[0]),
+	.ziiiram_active(board_configured[1]),
+	.ziiiram2_active(board_configured[2]),
+	.ziiiram3_active(board_configured[3]),
 //  .fastramcfg   ({&memcfg[5:4],memcfg[5:4]}),
-  .eth_en       (1'b1), // TODO
-  .sel_eth      (),
-  .frometh      (16'd0),
-  .ethready     (1'b0),
-  .ramaddr      (tg68_cad         ),
-  .cpustate     (tg68_cpustate    ),
-  .nResetOut    (tg68_nrst_out    ),
-  .ramlds       (tg68_clds        ),
-  .ramuds       (tg68_cuds        ),
-  .CACR_out     (tg68_CACR_out    ),
-  .VBR_out      (tg68_VBR_out     ),
-  // RTG signals
-  .rtg_reg_addr(rtg_reg_addr),
-  .rtg_reg_d(rtg_reg_d),
-  .rtg_reg_wr(rtg_reg_wr),
+	.eth_en       (1'b1), // TODO
+	.sel_eth      (),
+	.frometh      (16'd0),
+	.ethready     (1'b0),
+	.ramaddr      (tg68_cad         ),
+	.cpustate     (tg68_cpustate    ),
+	.nResetOut    (tg68_nrst_out    ),
+	.ramlds       (tg68_clds        ),
+	.ramuds       (tg68_cuds        ),
+	.CACR_out     (tg68_CACR_out    ),
+	.VBR_out      (tg68_VBR_out     ),
+	// RTG signals
+	.rtg_reg_addr(rtg_reg_addr),
+	.rtg_reg_d(rtg_reg_d),
+	.rtg_reg_wr(rtg_reg_wr),
 
 	.audio_buf(aud_addr[15]),
 	.audio_ena(aud_ena_cpu),
@@ -802,53 +797,53 @@ cfide #(
 	.havereconfig(havereconfig ? "true" : "false"),
 	.havecart(havecart ? "true" : "false")
 ) mycfide ( 
-		.sysclk(CLK_114),
-		.n_reset(reset_out),
+	.sysclk(CLK_114),
+	.n_reset(reset_out),
 
-		.addr(hostaddr),
-		.d(hostWR[15:0]),
-		.req(host_hwreq),
-		.wr(host_we),
-		.ack(host_hwack),
-		.q(host_hwdata),
+	.addr(hostaddr),
+	.d(hostWR[15:0]),
+	.req(host_hwreq),
+	.wr(host_we),
+	.ack(host_hwack),
+	.q(host_hwdata),
 
-		.sd_di(SPI_DO),
-		.sd_cs(SPI_CS),
-		.sd_clk(SPI_SCK),
-		.sd_do(SPI_DI),
-		.sd_dimm(SD_MISO),
-		.sd_ack(SD_ACK),
+	.sd_di(SPI_DO),
+	.sd_cs(SPI_CS),
+	.sd_clk(SPI_SCK),
+	.sd_do(SPI_DI),
+	.sd_dimm(SD_MISO),
+	.sd_ack(SD_ACK),
 
-		.debugTxD(CTRL_TX),
-		.debugRxD(CTRL_RX),
-		.menu_button(MENU_BUTTON),
-		.scandoubler(_15khz),
-		.invertsync(invertsync),
-		
-		.audio_ena(aud_ena_host),
-		.audio_clear(aud_clear),
-		.audio_buf(aud_addr[15]),
-		.audio_amiga(aud_ena_cpu),
-		.vbl_int(vblank_amiga),
-		.interrupt(host_interrupt),
-		.amiga_key(c64_translated_key),
-		.amiga_key_stb(c64_translated_key_stb),
-		.c64_keys(C64_KEYS),
+	.debugTxD(CTRL_TX),
+	.debugRxD(CTRL_RX),
+	.menu_button(MENU_BUTTON),
+	.scandoubler(_15khz),
+	.invertsync(invertsync),
+	
+	.audio_ena(aud_ena_host),
+	.audio_clear(aud_clear),
+	.audio_buf(aud_addr[15]),
+	.audio_amiga(aud_ena_cpu),
+	.vbl_int(vblank_amiga),
+	.interrupt(host_interrupt),
+	.amiga_key(c64_translated_key),
+	.amiga_key_stb(c64_translated_key_stb),
+	.c64_keys(C64_KEYS),
 
-		.amiga_addr(tg68_cad[8:1]),
-		.amiga_d(tg68_cin),
-		.amiga_q(amigahost_q),
-		.amiga_req(amigahost_req),
-		.amiga_wr(tg68_cpustate[0]),
-		.amiga_ack(amigahost_ack),
+	.amiga_addr(tg68_cad[8:1]),
+	.amiga_d(tg68_cin),
+	.amiga_q(amigahost_q),
+	.amiga_req(amigahost_req),
+	.amiga_wr(tg68_cpustate[0]),
+	.amiga_ack(amigahost_ack),
 
-      .rtc_q(rtc),
-		.reconfig(RECONFIG),
-		.iecserial(IECSERIAL),
+	.rtc_q(rtc),
+	.reconfig(RECONFIG),
+	.iecserial(IECSERIAL),
 
-		.clk_28(CLK_28),
-		.tick_in(aud_tick)
-	);
+	.clk_28(CLK_28),
+	.tick_in(aud_tick)
+);
 
 wire [  8-1:0] dithered_red;
 wire [  8-1:0] dithered_green;
@@ -871,7 +866,7 @@ video_vga_dither #(.outbits(vga_width), .flickerreduce("true")) dither
 	.ena(1'b1),
 	.pixel(rtg_ena ? rtg_pixel : vga_strobe),
 	.vidEna(vga_window),
-	.iSelcsync(1'b0), // selcsync),
+	.iSelcsync(selcsync),
 	.iCsync(VGA_CS_INT),
 	.iHsync(VGA_HS_INT),
 	.iVsync(VGA_VS_INT),
